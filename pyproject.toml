@@ -1,3 +1,16 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "interactifs_gestion"
+version = "0.1.0"
+description = "Minimal package for 2025-Interactifs-Gestion"
+requires-python = ">=3.9"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.black]
 line-length = 88
 target-version = ['py310']
