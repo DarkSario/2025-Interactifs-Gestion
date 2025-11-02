@@ -1,22 +1,26 @@
-import sys
 from pathlib import Path
-
-# Ensure src/ is on sys.path for tests when using src layout
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-
 from src.db.connection import connect
 from src.db.repository import MembersRepository
 
-def test_member_create_and_fetch(tmp_path):
-    dbfile = tmp_path / "test.db"
+
+def test_members_repository_crud(tmp_path):
+    dbfile = tmp_path / "repo_test.db"
     conn = connect(dbfile)
-    cur = conn.cursor()
-    cur.execute(
-        """CREATE TABLE members (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT);"""
-    )
-    conn.commit()
     repo = MembersRepository(conn)
-    mid = repo.create_member("Alice", "alice@example.org")
+
+    # ensure table creation works
+    repo.ensure_table()
+
+    # insert
+    mid = repo.create_member("Bob", "bob@example.org")
+    assert isinstance(mid, int)
+
+    # fetch
     rec = repo.get_member(mid)
-    assert rec["name"] == "Alice"
-    assert rec["email"] == "alice@example.org"
+    assert rec is not None
+    assert rec["name"] == "Bob"
+    assert rec["email"] == "bob@example.org"
+
+    # list
+    items = repo.list_members()
+    assert len(items) >= 1
