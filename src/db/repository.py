@@ -10,7 +10,7 @@ Usage:
     member_id = repo.create_member("Alice", "a@example.org")
     row = repo.get_member(member_id)
 """
-from typing import Iterable, Optional, Any
+from typing import Iterable, Optional
 import sqlite3
 
 from src.db.connection import transaction, connect

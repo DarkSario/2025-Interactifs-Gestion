@@ -1,4 +1,3 @@
-from pathlib import Path
 from src.db.connection import connect
 from src.db.repository import MembersRepository
 
