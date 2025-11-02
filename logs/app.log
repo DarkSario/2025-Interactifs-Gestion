@@ -1,0 +1,36 @@
+2025-11-02 17:24:34,348 | INFO | db | Database file set to: /tmp/tmp31bl0ngy.db
+2025-11-02 17:24:34,354 | INFO | db | Database file set to: /tmp/tmpx0jnb1uh.db
+2025-11-02 17:24:34,359 | INFO | db | Database file set to: /tmp/tmp0mwkcybh.db
+2025-11-02 17:24:34,365 | INFO | db | Database file set to: /tmp/tmpf8l0wzcg.db
+2025-11-02 17:24:34,370 | INFO | db | Database file set to: /tmp/tmpdfrtyevv.db
+2025-11-02 17:24:34,376 | WARNING | db_api | Database locked on attempt 1/3. Retrying in 0.1s... Query: UPDATE test_table SET value = ? WHERE name = ?
+2025-11-02 17:24:34,477 | WARNING | db_api | Database locked on attempt 2/3. Retrying in 0.2s... Query: UPDATE test_table SET value = ? WHERE name = ?
+2025-11-02 17:24:34,680 | WARNING | db_api | Database locked on attempt 1/2. Retrying in 0.05s... Query: UPDATE test_table SET value = ?
+2025-11-02 17:24:34,731 | ERROR | db_api | Database error after 2 attempts: database is locked
+2025-11-02 17:24:34,731 | ERROR | db_api | Query: UPDATE test_table SET value = ?
+2025-11-02 17:24:34,731 | ERROR | db_api | Params: (300,)
+2025-11-02 17:24:34,733 | ERROR | db_api | Error executing query: UNIQUE constraint failed
+2025-11-02 17:24:34,733 | ERROR | db_api | Query: INSERT INTO test_table VALUES (1, 'dup')
+2025-11-02 17:24:34,733 | ERROR | db_api | Params: None
+2025-11-02 17:24:34,735 | INFO | db | Database file set to: /tmp/tmpkau496em.db
+2025-11-02 17:24:34,740 | INFO | db | Database file set to: /tmp/tmpkvjfbhd8.db
+2025-11-02 17:24:34,745 | INFO | db | Database file set to: /tmp/tmpdf2m4mbp.db
+2025-11-02 17:24:34,749 | INFO | db | Database file set to: /tmp/tmp_ps7rw6c.db
+2025-11-02 17:24:34,793 | INFO | inventory_lines_dialog | Loading inventory lines for inventaire_id=2
+2025-11-02 17:24:34,793 | INFO | inventory_lines_dialog | No lines found for inventaire_id=2
+2025-11-02 17:24:34,799 | INFO | inventory_lines_dialog | Loading inventory lines for inventaire_id=1
+2025-11-02 17:24:34,799 | ERROR | inventory_lines_dialog | Error loading inventory lines for inventaire_id=1: Database is locked
+Traceback (most recent call last):
+  File "/home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion/modules/inventory_lines_dialog.py", line 60, in load_inventory_lines
+    raw_rows = _list_lignes_inventaire(inventaire_id)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion/modules/buvette_inventaire_db.py", line 101, in list_lignes_inventaire
+    conn = get_conn()
+           ^^^^^^^^^^
+  File "/home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion/tests/test_inventory_lines_loader.py", line 205, in mock_get_conn_error
+    raise sqlite3.OperationalError("Database is locked")
+sqlite3.OperationalError: Database is locked
+2025-11-02 17:24:34,800 | INFO | inventory_lines_dialog | Error report written to: /home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion/reports/inventory_error_20251102_172434.txt
+2025-11-02 17:24:34,806 | INFO | inventory_lines_dialog | Loading inventory lines for inventaire_id=1
+2025-11-02 17:24:34,806 | INFO | inventory_lines_dialog | Successfully loaded 2 inventory lines
+2025-11-02 17:24:34,814 | INFO | inventory_lines_dialog | Error report written to: /home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion/reports/inventory_error_20251102_172434.txt
