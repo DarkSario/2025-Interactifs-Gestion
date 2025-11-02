@@ -1,0 +1,30 @@
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+env/
+*.db
+association.db
+.env
+.env.*
+!.env.example
+logs/
+exports/
+.vscode/
+.idea/
+.DS_Store
+*.log
+
+# Database backups and migration reports
+*.db.*.bak
+scripts/migration_report_*.md
+reports/migration_report_*.md
+reports/inventory_error_*.txt
+reports/db_error_*.txt
+reports/SQL_ACCESS_MAP.md
+reports/TODOs.md
+
+# Code backup and diff files from auto-fix scripts
+*.bak
+*.fix.diff
+.backups/
