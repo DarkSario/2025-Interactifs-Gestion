@@ -1,15 +1,15 @@
 # SQL Access Map
-Generated: 2025-11-03T17:04:30.261933
+Generated: 2025-11-03T17:45:52.845553
 This report maps all database access patterns in the codebase.
 
 ## Summary
-- sqlite3 imports: 39
+- sqlite3 imports: 41
 - get_connection() calls: 193
-- fetch patterns: 270
-- row.get() usage: 47
+- fetch patterns: 278
+- row.get() usage: 56
 - Positional indexing: 171
-- execute() calls: 643
-- sqlite3.connect() calls: 55
+- execute() calls: 654
+- sqlite3.connect() calls: 56
 
 ## SQLite3 Imports
 - `db/db.py:12`
@@ -36,6 +36,7 @@ This report maps all database access patterns in the codebase.
 - `tests/test_stock_buvette_tab.py:11`
 - `tests/test_database_migration.py:7`
 - `tests/test_buvette_purchase_price.py:12`
+- `tests/test_src_row_utils.py:9`
 - `tests/test_analyze_modules.py:125`
 - `tests/test_smart_migration.py:7`
 - `tests/test_db_row_utils.py:8`
@@ -43,6 +44,7 @@ This report maps all database access patterns in the codebase.
 - `tests/test_startup_schema_check.py:7`
 - `src/db/repository.py:14`
 - `src/db/compat.py:33`
+- `src/db/row_utils.py:26`
 - `src/db/connection.py:13`
 - `dialogs/depense_dialog.py:2`
 - `modules/buvette_db.py:27`
@@ -676,9 +678,14 @@ This report maps all database access patterns in the codebase.
 - Line 502 `.fetchall()`: `columns = set(row[1] for row in cursor.fetchall())`
 
 ### src/db/repository.py
-- Line 39 `.fetchone()`: `return cur.fetchone()`
-- Line 31 `.fetchall()`: `return cur.fetchall()`
-- Line 47 `.fetchall()`: `return cur.fetchall()`
+- Line 50 `.fetchone()`: `row = cur.fetchone()`
+- Line 35 `.fetchall()`: `rows = cur.fetchall()`
+- Line 65 `.fetchall()`: `rows = cur.fetchall()`
+
+### src/db/row_utils.py
+- Line 21 `.fetchone()`: `>>> row = cursor.execute("SELECT * FROM table").fetchone()`
+- Line 45 `.fetchone()`: `>>> row = cursor.execute("SELECT * FROM table").fetchone()`
+- Line 84 `.fetchall()`: `>>> rows = cursor.execute("SELECT * FROM table").fetchall()`
 
 ### src/services/inventory_service.py
 - Line 30 `.fetchall()`: `found = [r[0] for r in cur.fetchall()]`
@@ -763,6 +770,13 @@ This report maps all database access patterns in the codebase.
 - Line 238 `.fetchone()`: `row = cursor.fetchone()`
 - Line 225 `.fetchall()`: `columns = {row[1] for row in cursor.fetchall()}`
 - Line 283 `.fetchall()`: `columns = {row[1] for row in cursor.fetchall()}`
+
+### tests/test_src_row_utils.py
+- Line 56 `.fetchone()`: `row = cursor.execute("SELECT * FROM test_table WHERE id=1").fetchone()`
+- Line 73 `.fetchone()`: `row = cursor.execute("SELECT * FROM test_table WHERE id=2").fetchone()`
+- Line 127 `.fetchone()`: `row1 = cursor.execute("SELECT * FROM test_table WHERE id=1").fetchone()`
+- Line 128 `.fetchone()`: `row2 = cursor.execute("SELECT * FROM test_table WHERE id=2").fetchone()`
+- Line 99 `.fetchall()`: `rows = cursor.execute("SELECT * FROM test_table ORDER BY id").fetchall()`
 
 ### tests/test_stock_journal.py
 - Line 123 `.fetchone()`: `result = cursor.fetchone()`
@@ -850,6 +864,16 @@ These MUST be fixed by converting rows to dicts first.
 ### scripts/audit_db_usage.py
 - Line 78 (var: `row`): `# Pattern: row.get( or row.get('`
 
+### scripts/replace_row_get.py
+- Line 14 (var: `row`): `- row.get('column')`
+- Line 15 (var: `result`): `- result.get('field', default)`
+- Line 16 (var: `item`): `- item.get('key')`
+
+### src/db/row_utils.py
+- Line 9 (var: `row`): `This causes AttributeError when code tries to use row.get('column', default).`
+- Line 23 (var: `row_dict`): `>>> value = row_dict.get('optional_column', 'default')`
+- Line 47 (var: `row_dict`): `>>> value = row_dict.get('optional_column', 'default')`
+
 ### tests/test_db_api_retry.py
 - Line 219 (var: `result`): `assert result.get('name') == 'test1'`
 - Line 220 (var: `result`): `assert result.get('value') == 100`
@@ -869,6 +893,11 @@ These MUST be fixed by converting rows to dicts first.
 - Line 81 (var: `row_dict`): `self.assertEqual(row_dict.get('optional_field', 'default'), None)`
 - Line 113 (var: `row_dict`): `self.assertEqual(row_dict.get('name'), 'test1')`
 - Line 139 (var: `row`): `row.get('name')`
+
+### tests/test_src_row_utils.py
+- Line 79 (var: `result`): `self.assertEqual(result.get("name"), "Test Item 2")`
+- Line 80 (var: `result`): `self.assertIsNone(result.get("optional_field"))`
+- Line 81 (var: `result`): `self.assertEqual(result.get("nonexistent_field", "default"), "default")`
 
 ### ui/dialogs/base_list_dialog.py
 - Line 115 (var: `row`): `item_id = row.get('id', '')`

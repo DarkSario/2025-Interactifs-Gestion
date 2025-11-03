@@ -1,5 +1,5 @@
 # Database Access TODOs
-Generated: 2025-11-03T17:04:30.262870
+Generated: 2025-11-03T17:45:52.846234
 
 This report lists action items for fixing database access issues.
 
@@ -42,6 +42,21 @@ Solution: Use `_row_to_dict(row)` or `_rows_to_dicts(rows)` from modules/db_row_
 - [ ] scripts/audit_db_usage.py:78
   ```python
   # Pattern: row.get( or row.get('
+  ```
+
+- [ ] scripts/replace_row_get.py:14
+  ```python
+  - row.get('column')
+  ```
+
+- [ ] scripts/replace_row_get.py:15
+  ```python
+  - result.get('field', default)
+  ```
+
+- [ ] scripts/replace_row_get.py:16
+  ```python
+  - item.get('key')
   ```
 
 - [ ] ui/dialogs/base_list_dialog.py:115
@@ -89,6 +104,21 @@ Solution: Use `_row_to_dict(row)` or `_rows_to_dicts(rows)` from modules/db_row_
   row.get('name')
   ```
 
+- [ ] tests/test_src_row_utils.py:79
+  ```python
+  self.assertEqual(result.get("name"), "Test Item 2")
+  ```
+
+- [ ] tests/test_src_row_utils.py:80
+  ```python
+  self.assertIsNone(result.get("optional_field"))
+  ```
+
+- [ ] tests/test_src_row_utils.py:81
+  ```python
+  self.assertEqual(result.get("nonexistent_field", "default"), "default")
+  ```
+
 - [ ] tests/test_db_row_utils.py:82
   ```python
   self.assertEqual(result.get("name"), "Test Item 2")
@@ -117,6 +147,21 @@ Solution: Use `_row_to_dict(row)` or `_rows_to_dicts(rows)` from modules/db_row_
 - [ ] tests/test_db_row_utils.py:183
   ```python
   self.assertEqual(row_dict.get("nonexistent", "default"), "default")
+  ```
+
+- [ ] src/db/row_utils.py:9
+  ```python
+  This causes AttributeError when code tries to use row.get('column', default).
+  ```
+
+- [ ] src/db/row_utils.py:23
+  ```python
+  >>> value = row_dict.get('optional_column', 'default')
+  ```
+
+- [ ] src/db/row_utils.py:47
+  ```python
+  >>> value = row_dict.get('optional_column', 'default')
   ```
 
 - [ ] modules/event_modules.py:262
@@ -443,6 +488,11 @@ Benefit: Automatic WAL mode, busy timeout, and consistent error handling
 - [ ] tests/test_buvette_purchase_price.py:18
   ```python
   conn = sqlite3.connect(db_file)
+  ```
+
+- [ ] tests/test_src_row_utils.py:21
+  ```python
+  self.conn = sqlite3.connect(self.db_path)
   ```
 
 - [ ] tests/test_analyze_modules.py:128
