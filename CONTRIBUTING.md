@@ -168,6 +168,31 @@ python scripts/audit_db_usage.py
 
 This generates:
 - `reports/SQL_ACCESS_MAP.md` - Maps all database access patterns
+- `reports/TODOs.md` - Action items for database access improvements
+
+### 2. Buvette Module Audit
+
+For buvette-specific changes, run:
+
+```bash
+python scripts/check_buvette.py
+```
+
+This validates:
+- Schema compliance for buvette tables
+- Column name standardization
+- Database access patterns
+- Test coverage
+
+### 3. Column Usage Analysis
+
+Identify potentially unused columns:
+
+```bash
+python scripts/analyze_modules_columns_old.py > reports/COLUMN_REMOVAL_CANDIDATES.md
+```
+
+**IMPORTANT:** This is for analysis only. Never remove columns without team approval.
 - `reports/TODOs.md` - Lists action items for fixing issues
 
 ### 2. Row.get() Pattern Detection

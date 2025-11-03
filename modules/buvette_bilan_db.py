@@ -5,6 +5,10 @@ STANDARDIZATION (PR copilot/audit-db-access-standardization):
 - Improved connection management with try/finally blocks to reduce locks
 - Converted sqlite3.Row to dicts for consistent .get() access patterns
 - Added docstrings and error handling
+
+TODO (audit/fixes-buvette):
+- All functions normalized to return dicts via rows_to_dicts/row_to_dict
+- Review reports/TODOs.md for additional audit findings
 """
 
 from db.db import get_connection

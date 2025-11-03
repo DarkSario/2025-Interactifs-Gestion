@@ -1,5 +1,5 @@
 # Database Access TODOs
-Generated: 2025-11-03T18:27:54.071200
+Generated: 2025-11-03T19:17:00.269086
 
 This report lists action items for fixing database access issues.
 
@@ -72,6 +72,41 @@ Solution: Use `_row_to_dict(row)` or `_rows_to_dicts(rows)` from modules/db_row_
 - [ ] tests/test_db_api_retry.py:220
   ```python
   assert result.get('value') == 100
+  ```
+
+- [ ] tests/test_buvette_repository.py:73
+  ```python
+  self.assertEqual(result.get('name'), 'Test Article 1')
+  ```
+
+- [ ] tests/test_buvette_repository.py:74
+  ```python
+  self.assertEqual(result.get('categorie'), 'Boissons')
+  ```
+
+- [ ] tests/test_buvette_repository.py:75
+  ```python
+  self.assertEqual(result.get('stock'), 10)
+  ```
+
+- [ ] tests/test_buvette_repository.py:78
+  ```python
+  self.assertEqual(result.get('nonexistent_field', 'default'), 'default')
+  ```
+
+- [ ] tests/test_buvette_repository.py:93
+  ```python
+  self.assertIsNone(result.get('commentaire'))
+  ```
+
+- [ ] tests/test_buvette_repository.py:94
+  ```python
+  self.assertEqual(result.get('commentaire', 'default'), None)  # NULL is present but None
+  ```
+
+- [ ] tests/test_buvette_repository.py:97
+  ```python
+  self.assertEqual(result.get('nonexistent', 'default'), 'default')
   ```
 
 - [ ] tests/test_row_to_dict_conversion.py:74
@@ -438,6 +473,11 @@ Benefit: Automatic WAL mode, busy timeout, and consistent error handling
 - [ ] tests/test_db_api_retry.py:30
   ```python
   conn = sqlite3.connect(path)
+  ```
+
+- [ ] tests/test_buvette_repository.py:27
+  ```python
+  cls.conn = sqlite3.connect(cls.db_path)
   ```
 
 - [ ] tests/test_row_to_dict_conversion.py:21
