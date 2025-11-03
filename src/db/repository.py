@@ -10,41 +10,60 @@ Usage:
     member_id = repo.create_member("Alice", "a@example.org")
     row = repo.get_member(member_id)
 """
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Dict, Any, List
 import sqlite3
 
 from src.db.connection import transaction, connect
+from src.db.row_utils import row_to_dict, rows_to_dicts
 
 
 class BaseRepository:
     def __init__(self, conn: Optional[sqlite3.Connection] = None):
         self._conn = conn or connect()
 
-    def execute(self, sql: str, params: Iterable = ()):
+    def execute(self, sql: str, params: Iterable = ()) -> List[Dict[str, Any]]:
         """
-        Execute a statement inside a transaction and return fetched rows.
+        Execute a statement inside a transaction and return fetched rows as dicts.
         Use this for write operations that must be transactional.
+        
+        Returns:
+            List of dicts representing the rows, or empty list if no results
         """
         with transaction(self._conn) as cur:
             cur.execute(sql, tuple(params))
             try:
-                return cur.fetchall()
+                rows = cur.fetchall()
+                return rows_to_dicts(rows)
             except Exception:
                 return []
 
-    def fetchone(self, sql: str, params: Iterable = ()):
+    def fetchone(self, sql: str, params: Iterable = ()) -> Optional[Dict[str, Any]]:
+        """
+        Execute a query and return a single row as a dict.
+        
+        Returns:
+            Dict representing the row, or None if no result
+        """
         cur = self._conn.cursor()
         try:
             cur.execute(sql, tuple(params))
-            return cur.fetchone()
+            row = cur.fetchone()
+            return row_to_dict(row)
         finally:
             cur.close()
 
-    def fetchall(self, sql: str, params: Iterable = ()):
+    def fetchall(self, sql: str, params: Iterable = ()) -> List[Dict[str, Any]]:
+        """
+        Execute a query and return all rows as a list of dicts.
+        
+        Returns:
+            List of dicts representing the rows, or empty list if no results
+        """
         cur = self._conn.cursor()
         try:
             cur.execute(sql, tuple(params))
-            return cur.fetchall()
+            rows = cur.fetchall()
+            return rows_to_dicts(rows)
         finally:
             cur.close()
 
@@ -70,8 +89,10 @@ class MembersRepository(BaseRepository):
             )
             return cur.lastrowid
 
-    def get_member(self, member_id: int) -> Optional[sqlite3.Row]:
+    def get_member(self, member_id: int) -> Optional[Dict[str, Any]]:
+        """Get a member by ID, returns dict or None."""
         return self.fetchone("SELECT * FROM members WHERE id = ?", (member_id,))
 
-    def list_members(self):
+    def list_members(self) -> List[Dict[str, Any]]:
+        """List all members, returns list of dicts."""
         return self.fetchall("SELECT * FROM members ORDER BY id")
