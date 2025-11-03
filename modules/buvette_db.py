@@ -23,6 +23,7 @@ STANDARDIZATION (PR copilot/audit-db-access-standardization):
 from db.db import get_connection
 from utils.db_helpers import rows_to_dicts, row_to_dict
 from utils.app_logger import get_logger
+from modules.stock_db import adjust_stock
 import sqlite3
 
 logger = get_logger("buvette_db")
@@ -139,7 +140,6 @@ def insert_achat(article_id, date_achat, quantite, prix_unitaire, fournisseur, f
         
         # Adjust stock: add purchased quantity
         try:
-            from modules.stock_db import adjust_stock
             adjust_stock(article_id, quantite, reason=f"Achat: facture {facture}")
             logger.info(f"Adjusted stock for article {article_id} by +{quantite} (purchase)")
         except Exception as e:
@@ -185,7 +185,6 @@ def delete_achat(achat_id):
             
             # Revert stock: subtract the purchased quantity
             try:
-                from modules.stock_db import adjust_stock
                 adjust_stock(article_id, -quantite, reason=f"Suppression achat #{achat_id}")
                 logger.info(f"Adjusted stock for article {article_id} by -{quantite} (delete purchase)")
             except Exception as e:
