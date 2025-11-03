@@ -125,16 +125,16 @@ def delete_inventaire(inv_id):
     """Supprime un inventaire de façon sûre: annule les effets stock, supprime les lignes enfants, puis l'inventaire."""
     conn = None
     try:
+        conn = get_conn()
         # First, revert inventory effects on stock to maintain consistency
         try:
-            revert_inventory_effect(inv_id)
+            revert_inventory_effect(conn, inv_id)
             logger.info(f"Reverted stock effects for inventory {inv_id}")
         except Exception as e:
             logger.warning(
                 f"Could not revert stock effects for inventory {inv_id}: {e}"
             )
 
-        conn = get_conn()
         # Ensure foreign keys enforcement (defensive)
         try:
             conn.execute("PRAGMA foreign_keys = ON;")
@@ -280,28 +280,16 @@ def apply_inventory_snapshot_wrapper(inv_id):
     conn = None
     try:
         conn = get_conn()
-        # Get all inventory lines for this inventory
-        rows = conn.execute("""
-            SELECT article_id, quantite
-            FROM buvette_inventaire_lignes
-            WHERE inventaire_id=?
-        """, (inv_id,)).fetchall()
-
-        snapshot = [{"article_id": row[0], "quantite": row[1]} for row in rows]
-
-        if snapshot:
-            apply_inventory_snapshot(inv_id, snapshot)
-            logger.info(f"Applied inventory snapshot for inventory {inv_id}")
-        else:
-            logger.warning(
-                f"No inventory lines found for inventory {inv_id}, "
-                f"skipping stock update"
-            )
+        apply_inventory_snapshot(conn, inv_id)
+        conn.commit()
+        logger.info(f"Applied inventory snapshot for inventory {inv_id}")
     except Exception as e:
         logger.error(
             f"Error applying inventory snapshot wrapper for "
             f"inventory {inv_id}: {e}"
         )
+        if conn:
+            conn.rollback()
         raise
     finally:
         if conn:

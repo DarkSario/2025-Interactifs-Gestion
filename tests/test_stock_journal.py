@@ -112,9 +112,10 @@ class TestStockJournal(unittest.TestCase):
         """Test that ensure_stock_tables creates the journal table."""
         from modules.stock_db import ensure_stock_tables
 
-        ensure_stock_tables()
-
         conn = get_test_connection(self.test_db)
+        ensure_stock_tables(conn)
+        conn.commit()
+
         cursor = conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' "
             "AND name='inventory_stock_journal'"
@@ -135,16 +136,18 @@ class TestStockJournal(unittest.TestCase):
         )
         article_id = cursor.lastrowid
         conn.commit()
-        conn.close()
 
         # Test get_stock
-        stock = get_stock(article_id)
+        stock = get_stock(conn, article_id)
         self.assertEqual(stock, 0, "Initial stock should be 0")
 
         # Test set_stock
-        set_stock(article_id, 10)
-        stock = get_stock(article_id)
+        set_stock(conn, article_id, 10)
+        conn.commit()
+        stock = get_stock(conn, article_id)
         self.assertEqual(stock, 10, "Stock should be updated to 10")
+        
+        conn.close()
 
     def test_apply_inventory_snapshot(self):
         """Test applying an inventory snapshot updates stock and journal."""
@@ -152,9 +155,8 @@ class TestStockJournal(unittest.TestCase):
             ensure_stock_tables, apply_inventory_snapshot, get_stock
         )
 
-        ensure_stock_tables()
-
         conn = get_test_connection(self.test_db)
+        ensure_stock_tables(conn)
 
         # Create test articles with initial stock
         cursor = conn.execute(
@@ -176,34 +178,40 @@ class TestStockJournal(unittest.TestCase):
         )
         inv_id = cursor.lastrowid
 
+        # Create inventory lines
+        conn.execute(
+            "INSERT INTO buvette_inventaire_lignes "
+            "(inventaire_id, article_id, quantite) VALUES (?, ?, ?)",
+            (inv_id, article1_id, 8)
+        )
+        conn.execute(
+            "INSERT INTO buvette_inventaire_lignes "
+            "(inventaire_id, article_id, quantite) VALUES (?, ?, ?)",
+            (inv_id, article2_id, 7)
+        )
+
         conn.commit()
-        conn.close()
 
         # Apply snapshot
-        snapshot = [
-            {"article_id": article1_id, "quantite": 8},
-            {"article_id": article2_id, "quantite": 7}
-        ]
-        apply_inventory_snapshot(inv_id, snapshot)
+        apply_inventory_snapshot(conn, inv_id)
+        conn.commit()
 
         # Check that stock was updated
         self.assertEqual(
-            get_stock(article1_id), 8,
+            get_stock(conn, article1_id), 8,
             "Article 1 stock should be updated to 8"
         )
         self.assertEqual(
-            get_stock(article2_id), 7,
+            get_stock(conn, article2_id), 7,
             "Article 2 stock should be updated to 7"
         )
 
         # Check that journal entries were created
-        conn = get_test_connection(self.test_db)
         rows = conn.execute("""
             SELECT article_id, delta FROM inventory_stock_journal
             WHERE inventaire_id=?
             ORDER BY article_id
         """, (inv_id,)).fetchall()
-        conn.close()
 
         self.assertEqual(len(rows), 2, "Should have 2 journal entries")
         self.assertEqual(rows[0]["article_id"], article1_id)
@@ -214,6 +222,8 @@ class TestStockJournal(unittest.TestCase):
         self.assertEqual(
             rows[1]["delta"], -3, "Article 2 delta should be -3 (7-10)"
         )
+        
+        conn.close()
 
     def test_revert_inventory_effect(self):
         """Test reverting inventory effects restores stock."""
@@ -222,9 +232,8 @@ class TestStockJournal(unittest.TestCase):
             revert_inventory_effect, get_stock
         )
 
-        ensure_stock_tables()
-
         conn = get_test_connection(self.test_db)
+        ensure_stock_tables(conn)
 
         # Create test articles with initial stock
         cursor = conn.execute(
@@ -246,45 +255,54 @@ class TestStockJournal(unittest.TestCase):
         )
         inv_id = cursor.lastrowid
 
+        # Create inventory lines
+        conn.execute(
+            "INSERT INTO buvette_inventaire_lignes "
+            "(inventaire_id, article_id, quantite) VALUES (?, ?, ?)",
+            (inv_id, article1_id, 8)
+        )
+        conn.execute(
+            "INSERT INTO buvette_inventaire_lignes "
+            "(inventaire_id, article_id, quantite) VALUES (?, ?, ?)",
+            (inv_id, article2_id, 7)
+        )
+
         conn.commit()
-        conn.close()
 
         # Apply snapshot
-        snapshot = [
-            {"article_id": article1_id, "quantite": 8},
-            {"article_id": article2_id, "quantite": 7}
-        ]
-        apply_inventory_snapshot(inv_id, snapshot)
+        apply_inventory_snapshot(conn, inv_id)
+        conn.commit()
 
         # Verify stock was updated
-        self.assertEqual(get_stock(article1_id), 8)
-        self.assertEqual(get_stock(article2_id), 7)
+        self.assertEqual(get_stock(conn, article1_id), 8)
+        self.assertEqual(get_stock(conn, article2_id), 7)
 
         # Revert the inventory
-        revert_inventory_effect(inv_id)
+        revert_inventory_effect(conn, inv_id)
+        conn.commit()
 
         # Check that stock was restored
         self.assertEqual(
-            get_stock(article1_id), 5,
+            get_stock(conn, article1_id), 5,
             "Article 1 stock should be restored to 5"
         )
         self.assertEqual(
-            get_stock(article2_id), 10,
+            get_stock(conn, article2_id), 10,
             "Article 2 stock should be restored to 10"
         )
 
         # Check that journal entries were deleted
-        conn = get_test_connection(self.test_db)
         rows = conn.execute("""
             SELECT COUNT(*) as count FROM inventory_stock_journal
             WHERE inventaire_id=?
         """, (inv_id,)).fetchone()
-        conn.close()
 
         self.assertEqual(
             rows["count"], 0,
             "Journal entries should be deleted after revert"
         )
+        
+        conn.close()
 
     def test_inventory_stock_journal(self):
         """Test retrieving stock journal for an inventory."""
@@ -293,9 +311,8 @@ class TestStockJournal(unittest.TestCase):
             inventory_stock_journal
         )
 
-        ensure_stock_tables()
-
         conn = get_test_connection(self.test_db)
+        ensure_stock_tables(conn)
 
         # Create test article
         cursor = conn.execute(
@@ -312,12 +329,18 @@ class TestStockJournal(unittest.TestCase):
         )
         inv_id = cursor.lastrowid
 
+        # Create inventory line
+        conn.execute(
+            "INSERT INTO buvette_inventaire_lignes "
+            "(inventaire_id, article_id, quantite) VALUES (?, ?, ?)",
+            (inv_id, article_id, 12)
+        )
+
         conn.commit()
-        conn.close()
 
         # Apply snapshot
-        snapshot = [{"article_id": article_id, "quantite": 12}]
-        apply_inventory_snapshot(inv_id, snapshot)
+        apply_inventory_snapshot(conn, inv_id)
+        conn.commit()
 
         # Get journal
         journal = inventory_stock_journal(inv_id)
@@ -326,6 +349,8 @@ class TestStockJournal(unittest.TestCase):
         self.assertEqual(journal[0]["article_id"], article_id)
         self.assertEqual(journal[0]["delta"], 7, "Delta should be +7 (12-5)")
         self.assertEqual(journal[0]["article_name"], "Test Article")
+        
+        conn.close()
 
 
 if __name__ == '__main__':
