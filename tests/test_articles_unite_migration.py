@@ -100,7 +100,7 @@ class TestArticlesUniteMigration(unittest.TestCase):
 
     def test_migration_preserves_data(self):
         """Test that migration preserves existing article data."""
-        from modules.buvette_db import insert_article, list_articles
+        from modules.buvette_db import insert_article, list_articles, clear_schema_cache
         from scripts.migrate_articles_unite_to_quantite import migrate, backup
 
         # Insert test data before migration
@@ -110,6 +110,9 @@ class TestArticlesUniteMigration(unittest.TestCase):
         # Run migration
         backup(self.test_db)
         migrate(self.test_db)
+
+        # Clear schema cache after migration to detect new schema
+        clear_schema_cache()
 
         # Verify data is preserved
         articles = list_articles()
@@ -125,12 +128,15 @@ class TestArticlesUniteMigration(unittest.TestCase):
 
     def test_insert_article_post_migration(self):
         """Test inserting article with post-migration schema."""
-        from modules.buvette_db import insert_article, list_articles
+        from modules.buvette_db import insert_article, list_articles, clear_schema_cache
         from scripts.migrate_articles_unite_to_quantite import migrate, backup
 
         # Run migration first
         backup(self.test_db)
         migrate(self.test_db)
+
+        # Clear schema cache after migration to detect new schema
+        clear_schema_cache()
 
         # Insert article after migration (API still uses 'unite' parameter for compatibility)
         insert_article("Test Article", "Test Cat", "bouteille", "Test comment", "1L", 2.5)
@@ -143,7 +149,7 @@ class TestArticlesUniteMigration(unittest.TestCase):
 
     def test_update_article_post_migration(self):
         """Test updating article with post-migration schema."""
-        from modules.buvette_db import insert_article, update_article, get_article_by_id, list_articles
+        from modules.buvette_db import insert_article, update_article, get_article_by_id, list_articles, clear_schema_cache
         from scripts.migrate_articles_unite_to_quantite import migrate, backup
 
         # Insert article before migration
@@ -152,6 +158,9 @@ class TestArticlesUniteMigration(unittest.TestCase):
         # Run migration
         backup(self.test_db)
         migrate(self.test_db)
+        
+        # Clear schema cache after migration to detect new schema
+        clear_schema_cache()
         
         articles = list_articles()
         article_id = articles[0]["id"]
@@ -178,8 +187,9 @@ class TestArticlesUniteMigration(unittest.TestCase):
 
     def test_stock_tab_listing_post_migration(self):
         """Test stock_tab.get_stock_listing() with post-migration schema."""
-        from modules.buvette_db import insert_article
+        from modules.buvette_db import insert_article, clear_schema_cache
         from modules.stock_tab import get_stock_listing
+        import modules.stock_tab
         from scripts.migrate_articles_unite_to_quantite import migrate, backup
 
         insert_article("Article 1", "Cat 1", "bouteille", "Comment 1", "1L", 2.5)
@@ -187,6 +197,10 @@ class TestArticlesUniteMigration(unittest.TestCase):
         # Run migration
         backup(self.test_db)
         migrate(self.test_db)
+        
+        # Clear schema cache after migration to detect new schema
+        clear_schema_cache()
+        modules.stock_tab.clear_schema_cache()
         
         insert_article("Article 2", "Cat 2", "canette", "Comment 2", "0.33L", 1.5)
 
@@ -207,10 +221,14 @@ class TestArticlesUniteMigration(unittest.TestCase):
 
     def test_migration_adds_columns(self):
         """Test that migration adds quantite and unite_type columns."""
+        from modules.buvette_db import clear_schema_cache
         from scripts.migrate_articles_unite_to_quantite import migrate, backup
 
         backup(self.test_db)
         migrate(self.test_db)
+        
+        # Clear schema cache after migration
+        clear_schema_cache()
 
         conn = get_test_connection(self.test_db)
         cursor = conn.execute("PRAGMA table_info(buvette_articles)")

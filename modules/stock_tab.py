@@ -11,6 +11,41 @@ from utils.app_logger import get_logger
 
 logger = get_logger("stock_tab")
 
+# Cache for schema detection to avoid repeated PRAGMA queries
+# Note: Cache is per-database-path to handle different test databases
+_schema_cache = {}
+
+
+def _get_cache_key(table_name):
+    """Generate cache key based on database path and table name."""
+    import os
+    db_path = os.environ.get("APP_DB_PATH", "association.db")
+    return f"{db_path}:{table_name}"
+
+
+def _get_table_columns(conn, table_name):
+    """
+    Get column names for a table, with caching.
+    
+    Args:
+        conn: Database connection
+        table_name: Name of the table
+        
+    Returns:
+        list: Column names
+    """
+    cache_key = _get_cache_key(table_name)
+    if cache_key not in _schema_cache:
+        cursor = conn.execute(f"PRAGMA table_info({table_name})")
+        _schema_cache[cache_key] = [row[1] for row in cursor.fetchall()]
+    return _schema_cache[cache_key]
+
+
+def clear_schema_cache():
+    """Clear the schema cache. Useful for testing or after database migrations."""
+    global _schema_cache
+    _schema_cache = {}
+
 
 def get_stock_listing(scope='buvette'):
     """
@@ -34,9 +69,8 @@ def get_stock_listing(scope='buvette'):
         # For now, we only support 'buvette' scope which maps to buvette_articles table
         # In the future, other scopes could be added (e.g., 'materiel' for stock table)
         if scope == 'buvette':
-            # Check which columns exist for backward compatibility
-            cursor = conn.execute("PRAGMA table_info(buvette_articles)")
-            columns = [row[1] for row in cursor.fetchall()]
+            # Check which columns exist for backward compatibility (cached for performance)
+            columns = _get_table_columns(conn, 'buvette_articles')
             
             # Build SELECT clause based on available columns
             select_parts = ['id', 'name', 'categorie', 'stock']
