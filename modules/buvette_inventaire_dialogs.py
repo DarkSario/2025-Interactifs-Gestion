@@ -274,7 +274,14 @@ class InventaireDialog(tk.Toplevel):
                 # Upsert line
                 db.upsert_ligne_inventaire(inv_id, article_id, quantite)
             
-            # Update article stock if quantite field exists
+            # Apply inventory snapshot to update stock and record in journal
+            try:
+                db.apply_inventory_snapshot_wrapper(inv_id)
+                logger.info(f"Applied inventory snapshot for inventory {inv_id}")
+            except Exception as e:
+                logger.warning(f"Could not apply inventory snapshot: {e}")
+            
+            # Update article stock if quantite field exists (legacy support)
             self._update_article_stock()
             
             messagebox.showinfo("Succès", "Inventaire enregistré avec succès.")
