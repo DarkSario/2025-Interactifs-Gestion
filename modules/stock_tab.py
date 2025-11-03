@@ -21,8 +21,12 @@ def get_stock_listing(scope='buvette'):
 
     Returns:
         list: Liste de dicts avec les informations des articles et stock.
-              Chaque dict: id, name, categorie, stock, unite, contenance,
-              commentaire
+              Chaque dict: id, name, categorie, stock, quantite, unite_type,
+              contenance, commentaire
+              
+              For backward compatibility, if 'unite' column exists (pre-migration),
+              it will be returned. After migration, 'quantite' and 'unite_type' 
+              columns will be returned instead.
     """
     conn = None
     try:
@@ -30,8 +34,30 @@ def get_stock_listing(scope='buvette'):
         # For now, we only support 'buvette' scope which maps to buvette_articles table
         # In the future, other scopes could be added (e.g., 'materiel' for stock table)
         if scope == 'buvette':
-            rows = conn.execute("""
-                SELECT id, name, categorie, stock, unite, contenance, commentaire
+            # Check which columns exist for backward compatibility
+            cursor = conn.execute("PRAGMA table_info(buvette_articles)")
+            columns = [row[1] for row in cursor.fetchall()]
+            
+            # Build SELECT clause based on available columns
+            select_parts = ['id', 'name', 'categorie', 'stock']
+            
+            # Handle unite vs quantite/unite_type migration
+            if 'quantite' in columns:
+                select_parts.append('quantite')
+            if 'unite_type' in columns:
+                select_parts.append('unite_type')
+            elif 'unite' in columns:
+                # Legacy schema - provide compatibility
+                select_parts.append('unite')
+            
+            select_parts.extend(['contenance', 'commentaire'])
+            
+            # Filter to only columns that exist
+            select_parts = [col for col in select_parts if col in columns]
+            
+            select_clause = ', '.join(select_parts)
+            rows = conn.execute(f"""
+                SELECT {select_clause}
                 FROM buvette_articles
                 ORDER BY name
             """).fetchall()
