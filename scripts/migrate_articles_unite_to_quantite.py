@@ -11,6 +11,11 @@ import argparse
 from pathlib import Path
 
 def table_has_column(conn, table, column):
+    # Table name is validated by checking it exists in sqlite_master
+    cur = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,))
+    if not cur.fetchone():
+        raise ValueError(f"Table {table} does not exist")
+    # Now safe to use in PRAGMA since it's confirmed to exist
     cur = conn.execute(f"PRAGMA table_info({table})")
     cols = [r[1] for r in cur.fetchall()]
     return column in cols
@@ -56,27 +61,51 @@ def migrate(db_path):
         old_cols = [r[1] for r in conn.execute("PRAGMA table_info(buvette_articles)").fetchall()]
         print("Old columns:", old_cols)
 
-        # Build SELECT that maps unite -> unite_type and other known columns
+        # Build both INSERT columns and SELECT expressions dynamically
+        insert_cols = []
         select_parts = []
-        # Ensure order: id, name, categorie, unite AS unite_type, contenance, commentaire, prix_achat
-        if "id" in old_cols: select_parts.append("id")
-        if "name" in old_cols: select_parts.append("name")
-        if "categorie" in old_cols: select_parts.append("categorie")
-        if "unite" in old_cols: select_parts.append("unite AS unite_type")
-        else: select_parts.append("NULL AS unite_type")
-        if "contenance" in old_cols: select_parts.append("contenance")
-        else: select_parts.append("NULL AS contenance")
-        if "commentaire" in old_cols: select_parts.append("commentaire")
-        else: select_parts.append("NULL AS commentaire")
+        
+        # id - always include if present
+        if "id" in old_cols:
+            insert_cols.append("id")
+            select_parts.append("id")
+        
+        # name - required field
+        if "name" in old_cols:
+            insert_cols.append("name")
+            select_parts.append("name")
+        
+        # categorie - optional
+        if "categorie" in old_cols:
+            insert_cols.append("categorie")
+            select_parts.append("categorie")
+        
+        # unite -> unite_type
+        if "unite" in old_cols:
+            insert_cols.append("unite_type")
+            select_parts.append("unite AS unite_type")
+        
+        # contenance - optional
+        if "contenance" in old_cols:
+            insert_cols.append("contenance")
+            select_parts.append("contenance")
+        
+        # commentaire - optional
+        if "commentaire" in old_cols:
+            insert_cols.append("commentaire")
+            select_parts.append("commentaire")
+        
+        # prix_achat or prix - optional
         if "prix_achat" in old_cols:
+            insert_cols.append("prix_achat")
             select_parts.append("prix_achat")
         elif "prix" in old_cols:
+            insert_cols.append("prix_achat")
             select_parts.append("prix AS prix_achat")
-        else:
-            select_parts.append("NULL AS prix_achat")
 
+        insert_sql = ", ".join(insert_cols)
         select_sql = ", ".join(select_parts)
-        copy_sql = f"INSERT INTO buvette_articles_new (id, name, categorie, unite_type, contenance, commentaire, prix_achat) SELECT {select_sql} FROM buvette_articles;"
+        copy_sql = f"INSERT INTO buvette_articles_new ({insert_sql}) SELECT {select_sql} FROM buvette_articles;"
         try:
             cur.execute(copy_sql)
         except Exception as e:
