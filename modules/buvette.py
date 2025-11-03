@@ -485,8 +485,13 @@ class ArticleDialog(tk.Toplevel):
         self.categorie_var = tk.StringVar(value=article["categorie"] if article else "")
         tk.Entry(self, textvariable=self.categorie_var).grid(row=1, column=1)
 
+        # Handle both pre-migration (unite) and post-migration (unite_type) schemas
         tk.Label(self, text="Unité").grid(row=2, column=0, sticky="w")
-        self.unite_var = tk.StringVar(value=article["unite"] if article else "")
+        unite_value = ""
+        if article:
+            # Try unite_type first (post-migration), fallback to unite (pre-migration)
+            unite_value = article.get("unite_type", article.get("unite", ""))
+        self.unite_var = tk.StringVar(value=unite_value)
         tk.Entry(self, textvariable=self.unite_var).grid(row=2, column=1)
 
         tk.Label(self, text="Contenance").grid(row=3, column=0, sticky="w")

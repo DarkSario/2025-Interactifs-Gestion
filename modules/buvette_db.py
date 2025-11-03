@@ -56,28 +56,70 @@ def get_article_by_id(article_id):
             conn.close()
 
 def insert_article(name, categorie, unite, commentaire, contenance, purchase_price=None):
-    """Insert new article."""
+    """
+    Insert new article.
+    
+    Handles both pre-migration (unite) and post-migration (quantite, unite_type) schemas.
+    The 'unite' parameter is used for backward compatibility:
+    - Pre-migration: stored in 'unite' column
+    - Post-migration: stored in 'unite_type' column
+    """
     conn = None
     try:
         conn = get_conn()
-        conn.execute("""
-            INSERT INTO buvette_articles (name, categorie, unite, commentaire, contenance, purchase_price)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (name, categorie, unite, commentaire, contenance, purchase_price))
+        
+        # Check which schema is in use
+        cursor = conn.execute("PRAGMA table_info(buvette_articles)")
+        columns = [row[1] for row in cursor.fetchall()]
+        
+        if 'unite_type' in columns:
+            # Post-migration schema: use unite_type instead of unite
+            conn.execute("""
+                INSERT INTO buvette_articles (name, categorie, unite_type, commentaire, contenance, purchase_price)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (name, categorie, unite, commentaire, contenance, purchase_price))
+        else:
+            # Pre-migration schema: use unite
+            conn.execute("""
+                INSERT INTO buvette_articles (name, categorie, unite, commentaire, contenance, purchase_price)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (name, categorie, unite, commentaire, contenance, purchase_price))
+        
         conn.commit()
     finally:
         if conn:
             conn.close()
 
 def update_article(article_id, name, categorie, unite, commentaire, contenance, purchase_price=None):
-    """Update existing article."""
+    """
+    Update existing article.
+    
+    Handles both pre-migration (unite) and post-migration (quantite, unite_type) schemas.
+    The 'unite' parameter is used for backward compatibility:
+    - Pre-migration: updates 'unite' column
+    - Post-migration: updates 'unite_type' column
+    """
     conn = None
     try:
         conn = get_conn()
-        conn.execute("""
-            UPDATE buvette_articles SET name=?, categorie=?, unite=?, commentaire=?, contenance=?, purchase_price=?
-            WHERE id=?
-        """, (name, categorie, unite, commentaire, contenance, purchase_price, article_id))
+        
+        # Check which schema is in use
+        cursor = conn.execute("PRAGMA table_info(buvette_articles)")
+        columns = [row[1] for row in cursor.fetchall()]
+        
+        if 'unite_type' in columns:
+            # Post-migration schema: use unite_type instead of unite
+            conn.execute("""
+                UPDATE buvette_articles SET name=?, categorie=?, unite_type=?, commentaire=?, contenance=?, purchase_price=?
+                WHERE id=?
+            """, (name, categorie, unite, commentaire, contenance, purchase_price, article_id))
+        else:
+            # Pre-migration schema: use unite
+            conn.execute("""
+                UPDATE buvette_articles SET name=?, categorie=?, unite=?, commentaire=?, contenance=?, purchase_price=?
+                WHERE id=?
+            """, (name, categorie, unite, commentaire, contenance, purchase_price, article_id))
+        
         conn.commit()
     finally:
         if conn:
