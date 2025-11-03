@@ -29,13 +29,23 @@ def _get_table_columns(conn, table_name):
     
     Args:
         conn: Database connection
-        table_name: Name of the table
+        table_name: Name of the table (validated against whitelist)
         
     Returns:
         list: Column names
+    
+    Raises:
+        ValueError: If table_name is not in the whitelist
     """
+    # Whitelist of allowed table names for security
+    ALLOWED_TABLES = {'buvette_articles', 'stock', 'inventaire_lignes'}
+    
+    if table_name not in ALLOWED_TABLES:
+        raise ValueError(f"Table '{table_name}' not in whitelist")
+    
     cache_key = _get_cache_key(table_name)
     if cache_key not in _schema_cache:
+        # Table name is validated against whitelist, safe to use in PRAGMA
         cursor = conn.execute(f"PRAGMA table_info({table_name})")
         _schema_cache[cache_key] = [row[1] for row in cursor.fetchall()]
     return _schema_cache[cache_key]
@@ -89,7 +99,19 @@ def get_stock_listing(scope='buvette'):
             # Filter to only columns that exist
             select_parts = [col for col in select_parts if col in columns]
             
+            # Whitelist of allowed column names for security
+            ALLOWED_COLUMNS = {
+                'id', 'name', 'categorie', 'stock', 'quantite',
+                'unite_type', 'unite', 'contenance', 'commentaire'
+            }
+            
+            # Validate all column names against whitelist
+            for col in select_parts:
+                if col not in ALLOWED_COLUMNS:
+                    raise ValueError(f"Column '{col}' not in whitelist")
+            
             select_clause = ', '.join(select_parts)
+            # Column names are validated against whitelist, safe to use in query
             rows = conn.execute(f"""
                 SELECT {select_clause}
                 FROM buvette_articles

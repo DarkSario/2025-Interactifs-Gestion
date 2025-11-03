@@ -36,7 +36,7 @@ def get_conn():
     conn = get_connection()
     return conn
 
-def _get_cache_key(conn, table_name):
+def _get_cache_key(table_name):
     """Generate cache key based on database path and table name."""
     import os
     db_path = os.environ.get("APP_DB_PATH", "association.db")
@@ -48,13 +48,23 @@ def _get_table_columns(conn, table_name):
     
     Args:
         conn: Database connection
-        table_name: Name of the table
+        table_name: Name of the table (validated against whitelist)
         
     Returns:
         list: Column names
+    
+    Raises:
+        ValueError: If table_name is not in the whitelist
     """
-    cache_key = _get_cache_key(conn, table_name)
+    # Whitelist of allowed table names for security
+    ALLOWED_TABLES = {'buvette_articles', 'buvette_achats', 'buvette_mouvements'}
+    
+    if table_name not in ALLOWED_TABLES:
+        raise ValueError(f"Table '{table_name}' not in whitelist")
+    
+    cache_key = _get_cache_key(table_name)
     if cache_key not in _schema_cache:
+        # Table name is validated against whitelist, safe to use in PRAGMA
         cursor = conn.execute(f"PRAGMA table_info({table_name})")
         _schema_cache[cache_key] = [row[1] for row in cursor.fetchall()]
     return _schema_cache[cache_key]
