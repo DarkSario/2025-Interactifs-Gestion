@@ -183,7 +183,10 @@ class TestBuvetteRepository(unittest.TestCase):
         2. Calculates stock based on movement types (entrée/sortie)
         3. Updates the article's stock field
         
-        TODO (audit/fixes-buvette): See reports/TODOs.md for movement type review
+        TODO (audit/fixes-buvette): Review if movement types are complete. 
+        Currently supports: entrée, sortie, inventaire, achat.
+        Verify with real data if other types exist (e.g., 'retour', 'perte').
+        See reports/TODOs.md for details.
         
         Note: This is a simplified test that doesn't import the actual function due to
         UI dependencies (tkinter). The actual function exists in modules/stock_db.py

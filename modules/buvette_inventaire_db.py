@@ -129,7 +129,11 @@ def delete_inventaire(inv_id):
     Supprime un inventaire de façon sûre: annule les effets stock, supprime les lignes enfants, 
     puis l'inventaire, et recalcule le stock des articles affectés.
     
-    TODO (audit/fixes-buvette): Voir reports/TODOs.md pour revue du processus de suppression
+    TODO (audit/fixes-buvette): Review deletion workflow order.
+    Current: revert_inventory_effect() → delete records → recompute_stock()
+    Alternative could be: get affected articles → delete → recompute only
+    Verify with real data that revert + recompute gives correct final stock.
+    See reports/TODOs.md for process review.
     """
     conn = None
     try:

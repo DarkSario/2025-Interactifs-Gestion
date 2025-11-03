@@ -507,7 +507,7 @@ class ArticleDialog(tk.Toplevel):
         self.commentaire_var = tk.StringVar(value=article["commentaire"] if article else "")
         tk.Entry(self, textvariable=self.commentaire_var).grid(row=4, column=1)
 
-        # TODO (audit/fixes-buvette): Added purchase_price field for manual price editing
+        # Added purchase_price field for manual price editing (audit/fixes-buvette)
         tk.Label(self, text="Prix achat/unité (€)").grid(row=5, column=0, sticky="w")
         purchase_price_value = ""
         if article and article.get("purchase_price") is not None:
@@ -527,7 +527,7 @@ class ArticleDialog(tk.Toplevel):
         contenance = self.contenance_var.get()
         commentaire = self.commentaire_var.get()
         
-        # TODO (audit/fixes-buvette): Parse purchase_price from input
+        # Parse and validate purchase_price from input
         purchase_price = None
         purchase_price_str = self.purchase_price_var.get().strip()
         if purchase_price_str:

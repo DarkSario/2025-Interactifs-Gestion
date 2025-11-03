@@ -476,7 +476,10 @@ def recompute_stock_for_article(conn, article_id):
         - Cette fonction met à jour la colonne stock dans buvette_articles
         
     TODO (audit/fixes-buvette): 
-        Voir reports/TODOs.md pour revue des types de mouvements supportés
+        Review complete list of movement types with real database data.
+        Currently handling: 'entrée', 'sortie', 'inventaire', 'achat'
+        Unknown types are logged as warnings and treated as neutral (no stock change).
+        See reports/TODOs.md for implementation review.
     """
     try:
         cursor = conn.cursor()

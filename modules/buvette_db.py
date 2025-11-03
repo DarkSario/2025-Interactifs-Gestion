@@ -226,8 +226,11 @@ def insert_achat(article_id, date_achat, quantite, prix_unitaire, fournisseur, f
     """
     Insert new achat, adjust stock, and update purchase_price.
     
-    TODO (audit/fixes-buvette): Updates purchase_price to latest prix_unitaire
-    See reports/TODOs.md for review of price update logic
+    TODO (audit/fixes-buvette): Review price update strategy.
+    Current: purchase_price = latest prix_unitaire from achat
+    Alternatives: weighted average, FIFO-based price, keep highest/lowest
+    Decision needed: should purchase_price reflect latest or average cost?
+    See reports/TODOs.md for pricing strategy review.
     """
     conn = None
     try:
@@ -265,8 +268,11 @@ def update_achat(achat_id, article_id, date_achat, quantite, prix_unitaire, four
     """
     Update existing achat and update purchase_price if changed.
     
-    TODO (audit/fixes-buvette): Updates purchase_price to latest prix_unitaire
-    See reports/TODOs.md for review of price update logic
+    TODO (audit/fixes-buvette): Review if price should update on achat modification.
+    Current: Updates purchase_price when achat is modified
+    Concern: May overwrite more recent purchase prices with older data
+    Consider: Only update if this achat date_achat is the most recent
+    See reports/TODOs.md for pricing strategy review.
     """
     conn = None
     try:
