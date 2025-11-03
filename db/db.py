@@ -20,10 +20,23 @@ _db_file = DB_FILE  # Pour gestion dynamique du fichier DB
 
 logger = get_logger("db")
 
+# Export db_file_lock for backward compatibility and serialization
+try:
+    from src.db.lock import db_file_lock
+except ImportError:
+    logger.warning("Could not import db_file_lock from src.db.lock")
+    db_file_lock = None
+
 def set_db_file(path):
-    """Change dynamiquement le fichier DB à utiliser."""
+    """Change dynamiquement le fichier DB à utiliser.
+    
+    This function sets both the internal _db_file variable and the APP_DB_PATH
+    environment variable to ensure consistency across the codebase.
+    """
     global _db_file
     _db_file = path
+    # Also set the environment variable so src.db.connection.connect uses the same path
+    os.environ["APP_DB_PATH"] = path
     logger.info(f"Database file set to: {_db_file}")
 
 def get_db_file():
@@ -32,24 +45,40 @@ def get_db_file():
 def get_connection():
     """Renvoie une connexion SQLite prête à l'emploi, journal_mode=WAL, gestion des erreurs.
     
-    Note: Does NOT set a global dict row_factory to avoid breaking code that uses 
-    positional indexing (e.g., row[0]). Instead, code should convert rows to dicts 
-    explicitly using modules/db_row_utils helpers when needed for .get() access.
+    This function now delegates to src.db.connection.connect to ensure all connections
+    use the unified configuration (WAL mode, busy_timeout, row_factory).
+    
+    Note: Uses sqlite3.Row for named access via row['column']. Code should convert 
+    rows to dicts explicitly using modules/db_row_utils helpers when needed for 
+    .get() access to avoid AttributeError.
     
     Pragmas set to reduce locking:
     - PRAGMA journal_mode=WAL (Write-Ahead Logging for better concurrency)
     - PRAGMA busy_timeout=5000 (Wait up to 5 seconds if DB is locked)
     """
     try:
-        conn = sqlite3.connect(_db_file, timeout=10, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
-        # Use sqlite3.Row for named access via row['column'], but not dict() for compatibility
-        conn.row_factory = sqlite3.Row
-        try:
-            conn.execute("PRAGMA journal_mode=WAL;")
-            conn.execute("PRAGMA busy_timeout=5000;")
-        except Exception as pragma_exc:
-            logger.warning(f"Impossible de définir les PRAGMAs: {pragma_exc}")
+        # Import here to avoid circular dependencies
+        from src.db.connection import connect
+        
+        # Use the new unified connection function, passing our _db_file path
+        conn = connect(db_path=_db_file, timeout=10)
         return conn
+    except ImportError:
+        # Fallback to legacy implementation if src.db.connection is not available
+        logger.warning("Could not import src.db.connection, using legacy connection method")
+        try:
+            conn = sqlite3.connect(_db_file, timeout=10, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+            # Use sqlite3.Row for named access via row['column'], but not dict() for compatibility
+            conn.row_factory = sqlite3.Row
+            try:
+                conn.execute("PRAGMA journal_mode=WAL;")
+                conn.execute("PRAGMA busy_timeout=5000;")
+            except Exception as pragma_exc:
+                logger.warning(f"Impossible de définir les PRAGMAs: {pragma_exc}")
+            return conn
+        except Exception as e:
+            logger.error(f"Erreur lors de la connexion à la base: {e}")
+            raise
     except Exception as e:
         logger.error(f"Erreur lors de la connexion à la base: {e}")
         raise

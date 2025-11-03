@@ -86,7 +86,10 @@ def get_real_schema(db_path: str) -> Dict[str, Set[str]]:
     schema = {}
     
     try:
-        conn = sqlite3.connect(db_path, timeout=10)
+        from db.db import get_connection, set_db_file
+        # Temporarily set the db file path if different
+        set_db_file(db_path)
+        conn = get_connection()
         cursor = conn.cursor()
         
         # Obtenir toutes les tables

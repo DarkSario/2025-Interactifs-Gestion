@@ -15,8 +15,8 @@ def export_all_tables_to_csv(db_file=None, export_dir=None):
     """
     Exporte toutes les tables SQLite en CSV dans un dossier donné.
     """
-    import sqlite3
     import pandas as pd
+    from db.db import get_connection
 
     if not db_file:
         db_file = get_db_file()
@@ -25,7 +25,7 @@ def export_all_tables_to_csv(db_file=None, export_dir=None):
     os.makedirs(export_dir, exist_ok=True)
 
     try:
-        conn = sqlite3.connect(db_file)
+        conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
         tables = [row[0] for row in cursor.fetchall()]
