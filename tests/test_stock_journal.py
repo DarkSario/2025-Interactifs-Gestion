@@ -343,7 +343,7 @@ class TestStockJournal(unittest.TestCase):
         conn.commit()
 
         # Get journal
-        journal = inventory_stock_journal(inv_id)
+        journal = inventory_stock_journal(conn, inv_id)
 
         self.assertEqual(len(journal), 1, "Should have 1 journal entry")
         self.assertEqual(journal[0]["article_id"], article_id)

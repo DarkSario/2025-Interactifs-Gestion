@@ -143,6 +143,12 @@ def apply_inventory_snapshot(conn, inventaire_id, lines_table_candidates=None):
     3. Met à jour le stock de chaque article
     4. Enregistre les deltas dans inventory_stock_journal pour annulation
     """
+    # Whitelist of allowed table names for security
+    ALLOWED_TABLES = {
+        'buvette_inventaire_lignes': True,
+        'inventaire_lignes': True,
+    }
+    
     if lines_table_candidates is None:
         lines_table_candidates = ['buvette_inventaire_lignes']
     
@@ -152,8 +158,15 @@ def apply_inventory_snapshot(conn, inventaire_id, lines_table_candidates=None):
         # Find inventory lines from candidate tables
         snapshot = []
         for table_name in lines_table_candidates:
+            # Validate table name against whitelist
+            if table_name not in ALLOWED_TABLES:
+                logger.warning(
+                    f"Table '{table_name}' not in whitelist, skipping"
+                )
+                continue
+            
             try:
-                # Validate table name exists
+                # Verify table exists in database
                 check_table = cursor.execute(
                     "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
                     (table_name,)
@@ -161,7 +174,7 @@ def apply_inventory_snapshot(conn, inventaire_id, lines_table_candidates=None):
                 if not check_table:
                     continue
                     
-                # Table name is validated, safe to use in query
+                # Table name is validated against whitelist and confirmed to exist
                 rows = cursor.execute(f"""
                     SELECT article_id, quantite
                     FROM {table_name}
@@ -266,19 +279,18 @@ def revert_inventory_effect(conn, inventaire_id):
         raise
 
 
-def inventory_stock_journal(inv_id):
+def inventory_stock_journal(conn, inv_id):
     """
     Récupère l'historique des modifications de stock pour un inventaire.
 
     Args:
+        conn: Database connection
         inv_id: ID de l'inventaire
 
     Returns:
         list: Liste de dicts avec article_id, delta, created_at
     """
-    conn = None
     try:
-        conn = get_connection()
         rows = conn.execute("""
             SELECT j.*, a.name as article_name
             FROM inventory_stock_journal j
@@ -290,6 +302,3 @@ def inventory_stock_journal(inv_id):
     except Exception as e:
         logger.error(f"Error getting stock journal for inventory {inv_id}: {e}")
         return []
-    finally:
-        if conn:
-            conn.close()
