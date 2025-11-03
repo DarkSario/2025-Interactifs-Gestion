@@ -14,7 +14,10 @@ import sqlite3
 from pathlib import Path
 import os
 
-DB_DEFAULT_PATH = Path(os.getenv("APP_DB_PATH", "data/association.db"))
+# Priority: APP_DB_PATH env var > legacy DB_FILE > default path
+_legacy_db_file = os.getenv("DB_FILE", "association.db")
+_default_path = os.getenv("APP_DB_PATH", _legacy_db_file)
+DB_DEFAULT_PATH = Path(_default_path)
 
 DEFAULT_BUSY_TIMEOUT_MS = int(os.getenv("DB_BUSY_TIMEOUT_MS", "5000"))
 

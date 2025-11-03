@@ -4,6 +4,11 @@ import sys
 from tkinter import messagebox, Toplevel, Label, Button
 from tkcalendar import DateEntry
 
+# Set up unified DB path configuration BEFORE importing DB modules
+DB_FILE = "association.db"
+if not os.getenv("APP_DB_PATH"):
+    os.environ["APP_DB_PATH"] = DB_FILE
+
 from db.db import (
     init_db, is_first_launch, save_init_info, get_connection,
     upgrade_db_structure, get_db_file
