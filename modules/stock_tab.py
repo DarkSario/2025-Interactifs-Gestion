@@ -2,7 +2,7 @@
 Module UI helper pour l'affichage du stock.
 
 Ce module fournit des fonctions utilitaires pour récupérer et formater
-les données de stock pour l'affichage dans l'interface utilisateur.
+les données de stock pour l'interface utilisateur.
 """
 
 from db.db import get_connection
