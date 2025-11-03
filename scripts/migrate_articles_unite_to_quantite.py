@@ -53,7 +53,8 @@ def migrate(db_path):
             unite_type TEXT,
             contenance TEXT,
             commentaire TEXT,
-            prix_achat REAL
+            stock INTEGER DEFAULT 0,
+            purchase_price REAL
         );
         """)
 
@@ -95,13 +96,21 @@ def migrate(db_path):
             insert_cols.append("commentaire")
             select_parts.append("commentaire")
         
-        # prix_achat or prix - optional
-        if "prix_achat" in old_cols:
-            insert_cols.append("prix_achat")
-            select_parts.append("prix_achat")
+        # stock - optional
+        if "stock" in old_cols:
+            insert_cols.append("stock")
+            select_parts.append("stock")
+        
+        # purchase_price or prix_achat or prix - optional
+        if "purchase_price" in old_cols:
+            insert_cols.append("purchase_price")
+            select_parts.append("purchase_price")
+        elif "prix_achat" in old_cols:
+            insert_cols.append("purchase_price")
+            select_parts.append("prix_achat AS purchase_price")
         elif "prix" in old_cols:
-            insert_cols.append("prix_achat")
-            select_parts.append("prix AS prix_achat")
+            insert_cols.append("purchase_price")
+            select_parts.append("prix AS purchase_price")
 
         insert_sql = ", ".join(insert_cols)
         select_sql = ", ".join(select_parts)

@@ -5,6 +5,10 @@ STANDARDIZATION (PR copilot/audit-db-access-standardization):
 - Improved connection management with try/finally blocks to reduce locks
 - Converted sqlite3.Row to dicts for consistent .get() access patterns
 - Added docstrings and error handling
+
+STOCK MANAGEMENT (PR fix/stock-and-unite):
+- Added revert_inventory_effect call in delete_inventaire to prevent FK constraint failures
+- Added apply_inventory_snapshot_wrapper helper for inventory create/update flows
 """
 
 from db.db import get_connection
@@ -115,9 +119,17 @@ def _find_referencing_tables(conn, parent_table):
         cur.close()
 
 def delete_inventaire(inv_id):
-    """Supprime un inventaire de façon sûre: supprime les lignes enfants référencées, puis l'inventaire."""
+    """Supprime un inventaire de façon sûre: annule les effets stock, supprime les lignes enfants, puis l'inventaire."""
     conn = None
     try:
+        # First, revert inventory effects on stock to maintain consistency
+        from modules.stock_db import revert_inventory_effect
+        try:
+            revert_inventory_effect(inv_id)
+            logger.info(f"Reverted stock effects for inventory {inv_id}")
+        except Exception as e:
+            logger.warning(f"Could not revert stock effects for inventory {inv_id}: {e}")
+        
         conn = get_conn()
         # Ensure foreign keys enforcement (defensive)
         try:
@@ -240,6 +252,49 @@ def list_events():
         conn = get_conn()
         rows = conn.execute("SELECT id, name FROM events ORDER BY date DESC").fetchall()
         return rows_to_dicts(rows)
+    finally:
+        if conn:
+            conn.close()
+
+
+# ----- STOCK INTEGRATION -----
+def apply_inventory_snapshot_wrapper(inv_id):
+    """
+    Helper pour appliquer un snapshot d'inventaire au stock.
+    
+    Cette fonction doit être appelée après la création ou la mise à jour d'un inventaire
+    pour mettre à jour automatiquement les stocks des articles.
+    
+    Args:
+        inv_id: ID de l'inventaire dont il faut appliquer les quantités au stock
+        
+    Example usage in inventory create flow:
+        inv_id = insert_inventaire(date, event_id, type_inv, comment)
+        # ... insert inventory lines ...
+        apply_inventory_snapshot_wrapper(inv_id)
+    """
+    from modules.stock_db import apply_inventory_snapshot
+    
+    conn = None
+    try:
+        conn = get_conn()
+        # Get all inventory lines for this inventory
+        rows = conn.execute("""
+            SELECT article_id, quantite
+            FROM buvette_inventaire_lignes
+            WHERE inventaire_id=?
+        """, (inv_id,)).fetchall()
+        
+        snapshot = [{"article_id": row[0], "quantite": row[1]} for row in rows]
+        
+        if snapshot:
+            apply_inventory_snapshot(inv_id, snapshot)
+            logger.info(f"Applied inventory snapshot for inventory {inv_id}")
+        else:
+            logger.warning(f"No inventory lines found for inventory {inv_id}, skipping stock update")
+    except Exception as e:
+        logger.error(f"Error applying inventory snapshot wrapper for inventory {inv_id}: {e}")
+        raise
     finally:
         if conn:
             conn.close()
