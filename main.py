@@ -1,5 +1,7 @@
-import tkinter as tk
 import os
+os.environ.setdefault("APP_DB_PATH", os.getenv("LEGACY_DB_FILE", "association.db"))
+
+import tkinter as tk
 import sys
 from tkinter import messagebox, Toplevel, Label, Button
 from tkcalendar import DateEntry
