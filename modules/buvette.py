@@ -57,10 +57,12 @@ class BuvetteModule:
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text="Articles")
 
-        self.articles_tree = ttk.Treeview(frame, columns=("name", "categorie", "unite", "contenance", "purchase_price", "commentaire"), show="headings")
+        # Note: After migration, 'unite' becomes 'unite_type' and 'quantite' is added
+        self.articles_tree = ttk.Treeview(frame, columns=("name", "categorie", "quantite", "unite_type", "contenance", "purchase_price", "commentaire"), show="headings")
         self.articles_tree.heading("name", text="Name")
         self.articles_tree.heading("categorie", text="Catégorie")
-        self.articles_tree.heading("unite", text="Unité")
+        self.articles_tree.heading("quantite", text="Qté")
+        self.articles_tree.heading("unite_type", text="Type Unité")
         self.articles_tree.heading("contenance", text="Contenance")
         self.articles_tree.heading("purchase_price", text="Prix achat/unité (€)")
         self.articles_tree.heading("commentaire", text="Commentaire")
@@ -88,12 +90,17 @@ class BuvetteModule:
                     except (ValueError, TypeError):
                         pass
                 
+                # Handle both pre-migration (unite) and post-migration (unite_type, quantite) schemas
+                unite_display = a.get("unite_type", a.get("unite", ""))
+                quantite_display = a.get("quantite", "")
+                
                 self.articles_tree.insert(
                     "", "end", iid=a.get("id", 0),
                     values=(
                         a.get("name", ""),
                         a.get("categorie", ""),
-                        a.get("unite", ""),
+                        quantite_display,
+                        unite_display,
                         a.get("contenance", ""),
                         purchase_price_display,
                         a.get("commentaire", "")
@@ -361,15 +368,18 @@ class BuvetteModule:
         self.notebook.add(frame, text="Stock Buvette")
 
         # Create treeview for stock display
+        # Note: After migration, 'unite' becomes 'unite_type' and 'quantite' is added
+        # For backward compatibility, we display both unite (pre-migration) and unite_type (post-migration)
         self.stock_tree = ttk.Treeview(
             frame, 
-            columns=("name", "categorie", "stock", "unite", "contenance", "commentaire"), 
+            columns=("name", "categorie", "stock", "quantite", "unite_type", "contenance", "commentaire"), 
             show="headings"
         )
         self.stock_tree.heading("name", text="Article")
         self.stock_tree.heading("categorie", text="Catégorie")
         self.stock_tree.heading("stock", text="Stock")
-        self.stock_tree.heading("unite", text="Unité")
+        self.stock_tree.heading("quantite", text="Qté")
+        self.stock_tree.heading("unite_type", text="Type Unité")
         self.stock_tree.heading("contenance", text="Contenance")
         self.stock_tree.heading("commentaire", text="Commentaire")
         
@@ -377,7 +387,8 @@ class BuvetteModule:
         self.stock_tree.column("name", width=150)
         self.stock_tree.column("categorie", width=100)
         self.stock_tree.column("stock", width=80)
-        self.stock_tree.column("unite", width=80)
+        self.stock_tree.column("quantite", width=60)
+        self.stock_tree.column("unite_type", width=80)
         self.stock_tree.column("contenance", width=100)
         self.stock_tree.column("commentaire", width=200)
         
@@ -411,6 +422,10 @@ class BuvetteModule:
             
             # Populate treeview
             for item in stock_items:
+                # Handle both pre-migration (unite) and post-migration (unite_type) schemas
+                unite_display = item.get("unite_type", item.get("unite", ""))
+                quantite_display = item.get("quantite", "")
+                
                 self.stock_tree.insert(
                     "", "end", 
                     iid=item.get("id", 0),
@@ -418,7 +433,8 @@ class BuvetteModule:
                         item.get("name", ""),
                         item.get("categorie", ""),
                         item.get("stock", 0),
-                        item.get("unite", ""),
+                        quantite_display,
+                        unite_display,
                         item.get("contenance", ""),
                         item.get("commentaire", "")
                     )
@@ -469,8 +485,13 @@ class ArticleDialog(tk.Toplevel):
         self.categorie_var = tk.StringVar(value=article["categorie"] if article else "")
         tk.Entry(self, textvariable=self.categorie_var).grid(row=1, column=1)
 
+        # Handle both pre-migration (unite) and post-migration (unite_type) schemas
         tk.Label(self, text="Unité").grid(row=2, column=0, sticky="w")
-        self.unite_var = tk.StringVar(value=article["unite"] if article else "")
+        unite_value = ""
+        if article:
+            # Try unite_type first (post-migration), fallback to unite (pre-migration)
+            unite_value = article.get("unite_type", article.get("unite", ""))
+        self.unite_var = tk.StringVar(value=unite_value)
         tk.Entry(self, textvariable=self.unite_var).grid(row=2, column=1)
 
         tk.Label(self, text="Contenance").grid(row=3, column=0, sticky="w")
