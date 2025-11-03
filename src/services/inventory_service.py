@@ -1,5 +1,5 @@
 from pathlib import Path
-from src.db.connection import connect, transaction
+from src.db.connection import connect, transaction, DB_DEFAULT_PATH
 from src.db.lock import db_file_lock
 
 
@@ -31,7 +31,7 @@ class InventoryService:
         This method takes an exclusive db_file_lock while performing the
         create to serialise competing creators in multi-process setups.
         """
-        db_path = self._db_path or "data/association.db"
+        db_path = self._db_path or DB_DEFAULT_PATH
         # Acquire a cross-process lock for the DB path; portalocker will
         # block until lock acquired.
         with db_file_lock(db_path):

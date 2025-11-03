@@ -52,9 +52,13 @@ def test_busy_timeout_allows_wait(tmp_path):
     assert exc is None, f"writer failed with {exc}"
 
     # final sanity check: both rows present
-    cr = connect(dbfile).cursor()
+    conn_check = connect(dbfile)
     try:
-        cr.execute("SELECT COUNT(*) FROM t")
-        assert cr.fetchone()[0] == 2
+        cr = conn_check.cursor()
+        try:
+            cr.execute("SELECT COUNT(*) FROM t")
+            assert cr.fetchone()[0] == 2
+        finally:
+            cr.close()
     finally:
-        cr.close()
+        conn_check.close()
