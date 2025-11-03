@@ -23,8 +23,8 @@ Example:
     >>> value = row_dict.get('optional_column', 'default')
 """
 
-from typing import Any, Dict, List, Optional
 import sqlite3
+from typing import Any, Dict, List, Optional
 
 
 def row_to_dict(row: Optional[sqlite3.Row]) -> Optional[Dict[str, Any]]:
@@ -67,7 +67,7 @@ def row_to_dict(row: Optional[sqlite3.Row]) -> Optional[Dict[str, Any]]:
         raise TypeError(f"Cannot convert {type(row)} to dict: {e}")
 
 
-def rows_to_dicts(rows: List[sqlite3.Row]) -> List[Dict[str, Any]]:
+def rows_to_dicts(rows: List[Any]) -> List[Dict[str, Any]]:
     """
     Convert list of sqlite3.Row objects to list of dicts.
     
