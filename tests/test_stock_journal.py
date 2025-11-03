@@ -352,6 +352,106 @@ class TestStockJournal(unittest.TestCase):
         
         conn.close()
 
+    def test_create_purchase_batch(self):
+        """Test creating a purchase batch."""
+        from modules.stock_db import ensure_stock_tables, create_purchase_batch
+
+        conn = get_test_connection(self.test_db)
+        ensure_stock_tables(conn)
+
+        # Create test article
+        cursor = conn.execute(
+            "INSERT INTO buvette_articles (name, stock) VALUES (?, ?)",
+            ("Test Article", 0)
+        )
+        article_id = cursor.lastrowid
+        conn.commit()
+
+        # Create purchase batch
+        batch_id = create_purchase_batch(
+            conn, article_id, quantity=10, unit_price=2.5
+        )
+        conn.commit()
+
+        # Verify batch was created
+        row = conn.execute("""
+            SELECT article_id, quantity, remaining_quantity, unit_price
+            FROM article_purchase_batches
+            WHERE id = ?
+        """, (batch_id,)).fetchone()
+
+        self.assertIsNotNone(row, "Purchase batch should be created")
+        self.assertEqual(row[0], article_id)
+        self.assertEqual(row[1], 10, "Quantity should be 10")
+        self.assertEqual(row[2], 10, "Remaining quantity should be 10")
+        self.assertEqual(row[3], 2.5, "Unit price should be 2.5")
+
+        conn.close()
+
+    def test_consume_purchase_batches_fifo(self):
+        """Test consuming purchase batches in FIFO order."""
+        from modules.stock_db import (
+            ensure_stock_tables, create_purchase_batch,
+            consume_purchase_batches_fifo
+        )
+
+        conn = get_test_connection(self.test_db)
+        ensure_stock_tables(conn)
+
+        # Create test article
+        cursor = conn.execute(
+            "INSERT INTO buvette_articles (name, stock) VALUES (?, ?)",
+            ("Test Article", 0)
+        )
+        article_id = cursor.lastrowid
+        conn.commit()
+
+        # Create multiple purchase batches with different prices
+        batch1_id = create_purchase_batch(
+            conn, article_id, quantity=5, unit_price=2.0
+        )
+        batch2_id = create_purchase_batch(
+            conn, article_id, quantity=10, unit_price=3.0
+        )
+        batch3_id = create_purchase_batch(
+            conn, article_id, quantity=8, unit_price=2.5
+        )
+        conn.commit()
+
+        # Consume 12 units (should consume batch1 fully and batch2 partially)
+        result = consume_purchase_batches_fifo(conn, article_id, 12)
+        conn.commit()
+
+        # Verify result
+        self.assertEqual(
+            result['total_cost'], 5 * 2.0 + 7 * 3.0,
+            "Total cost should be (5*2.0 + 7*3.0) = 31.0"
+        )
+        self.assertEqual(
+            len(result['consumed_batches']), 2,
+            "Should have consumed from 2 batches"
+        )
+
+        # Verify batch1 is fully consumed
+        row1 = conn.execute("""
+            SELECT remaining_quantity FROM article_purchase_batches WHERE id = ?
+        """, (batch1_id,)).fetchone()
+        self.assertEqual(row1[0], 0, "Batch1 should be fully consumed")
+
+        # Verify batch2 has 3 remaining
+        row2 = conn.execute("""
+            SELECT remaining_quantity FROM article_purchase_batches WHERE id = ?
+        """, (batch2_id,)).fetchone()
+        self.assertEqual(row2[0], 3, "Batch2 should have 3 remaining")
+
+        # Verify batch3 is untouched
+        row3 = conn.execute("""
+            SELECT remaining_quantity FROM article_purchase_batches WHERE id = ?
+        """, (batch3_id,)).fetchone()
+        self.assertEqual(row3[0], 8, "Batch3 should be untouched")
+
+        conn.close()
+
 
 if __name__ == '__main__':
     unittest.main()
