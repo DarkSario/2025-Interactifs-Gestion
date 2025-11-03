@@ -17,7 +17,6 @@ from utils.app_logger import get_logger
 from modules.stock_db import (
     revert_inventory_effect, apply_inventory_snapshot
 )
-import sqlite3
 
 logger = get_logger("buvette_inventaire_db")
 
