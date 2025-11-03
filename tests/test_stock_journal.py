@@ -12,6 +12,7 @@ import unittest
 import sqlite3
 import os
 import sys
+import tempfile
 
 # Add parent directory to path to import modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -34,7 +35,9 @@ class TestStockJournal(unittest.TestCase):
 
     def setUp(self):
         """Set up a fresh test database before each test."""
-        self.test_db = f"/tmp/test_stock_journal_{id(self)}.db"
+        # Create temporary file that will be auto-cleaned
+        fd, self.test_db = tempfile.mkstemp(suffix='.db')
+        os.close(fd)
 
         # Set environment variable for db.db module
         os.environ["APP_DB_PATH"] = self.test_db

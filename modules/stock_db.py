@@ -15,7 +15,7 @@ Toutes les opérations sont transactionnelles.
 """
 
 from db.db import get_connection
-from utils.db_helpers import rows_to_dicts, row_to_dict
+from utils.db_helpers import rows_to_dicts
 from utils.app_logger import get_logger
 
 logger = get_logger("stock_db")
@@ -70,8 +70,7 @@ def get_stock(article_id):
             (article_id,)
         ).fetchone()
         if row:
-            result = row_to_dict(row)
-            return result.get("stock", 0)
+            return row[0] if row[0] is not None else 0
         return 0
     except Exception as e:
         logger.error(f"Error getting stock for article {article_id}: {e}")

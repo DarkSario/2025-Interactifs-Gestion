@@ -14,6 +14,9 @@ STOCK MANAGEMENT (PR fix/stock-and-unite):
 from db.db import get_connection
 from utils.db_helpers import rows_to_dicts, row_to_dict
 from utils.app_logger import get_logger
+from modules.stock_db import (
+    revert_inventory_effect, apply_inventory_snapshot
+)
 import sqlite3
 
 logger = get_logger("buvette_inventaire_db")
@@ -123,13 +126,14 @@ def delete_inventaire(inv_id):
     conn = None
     try:
         # First, revert inventory effects on stock to maintain consistency
-        from modules.stock_db import revert_inventory_effect
         try:
             revert_inventory_effect(inv_id)
             logger.info(f"Reverted stock effects for inventory {inv_id}")
         except Exception as e:
-            logger.warning(f"Could not revert stock effects for inventory {inv_id}: {e}")
-        
+            logger.warning(
+                f"Could not revert stock effects for inventory {inv_id}: {e}"
+            )
+
         conn = get_conn()
         # Ensure foreign keys enforcement (defensive)
         try:
@@ -261,20 +265,18 @@ def list_events():
 def apply_inventory_snapshot_wrapper(inv_id):
     """
     Helper pour appliquer un snapshot d'inventaire au stock.
-    
+
     Cette fonction doit être appelée après la création ou la mise à jour d'un inventaire
     pour mettre à jour automatiquement les stocks des articles.
-    
+
     Args:
         inv_id: ID de l'inventaire dont il faut appliquer les quantités au stock
-        
+
     Example usage in inventory create flow:
         inv_id = insert_inventaire(date, event_id, type_inv, comment)
         # ... insert inventory lines ...
         apply_inventory_snapshot_wrapper(inv_id)
     """
-    from modules.stock_db import apply_inventory_snapshot
-    
     conn = None
     try:
         conn = get_conn()
@@ -284,16 +286,22 @@ def apply_inventory_snapshot_wrapper(inv_id):
             FROM buvette_inventaire_lignes
             WHERE inventaire_id=?
         """, (inv_id,)).fetchall()
-        
+
         snapshot = [{"article_id": row[0], "quantite": row[1]} for row in rows]
-        
+
         if snapshot:
             apply_inventory_snapshot(inv_id, snapshot)
             logger.info(f"Applied inventory snapshot for inventory {inv_id}")
         else:
-            logger.warning(f"No inventory lines found for inventory {inv_id}, skipping stock update")
+            logger.warning(
+                f"No inventory lines found for inventory {inv_id}, "
+                f"skipping stock update"
+            )
     except Exception as e:
-        logger.error(f"Error applying inventory snapshot wrapper for inventory {inv_id}: {e}")
+        logger.error(
+            f"Error applying inventory snapshot wrapper for "
+            f"inventory {inv_id}: {e}"
+        )
         raise
     finally:
         if conn:
