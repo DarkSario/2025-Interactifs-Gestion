@@ -23,6 +23,9 @@ class InventoryService:
             
         cur = conn.cursor()
         
+        # Whitelist of valid table names (prevents SQL injection)
+        VALID_TABLES = ['inventory_lines', 'inventaire_lignes', 'buvette_inventaire_lignes']
+        
         # Try to find the inventory lines table
         cur.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND "
@@ -43,24 +46,35 @@ class InventoryService:
             
         lines_table = table_row[0]
         
-        # Get column names for the table
+        # Validate table name against whitelist (security)
+        if lines_table not in VALID_TABLES:
+            raise ValueError(f"Invalid table name detected: {lines_table}")
+        
+        # Get column names for the table - PRAGMA is safe with validated table name
         cur.execute(f"PRAGMA table_info({lines_table})")
         columns = [row[1] for row in cur.fetchall()]
         
-        # Map column names
+        # Whitelist of valid column names (prevents SQL injection)
+        VALID_PRODUCT_COLS = ['product_id', 'article_id', 'stock_id']
+        VALID_QTY_COLS = ['qty', 'quantite', 'quantite_constatee']
+        VALID_INV_COLS = ['inventaire_id']
+        
+        # Map column names (with validation)
         product_id_col = 'product_id'
-        if 'article_id' in columns:
+        if 'article_id' in columns and 'article_id' in VALID_PRODUCT_COLS:
             product_id_col = 'article_id'
-        elif 'stock_id' in columns:
+        elif 'stock_id' in columns and 'stock_id' in VALID_PRODUCT_COLS:
             product_id_col = 'stock_id'
             
         qty_col = 'qty'
-        if 'quantite' in columns:
+        if 'quantite' in columns and 'quantite' in VALID_QTY_COLS:
             qty_col = 'quantite'
-        elif 'quantite_constatee' in columns:
+        elif 'quantite_constatee' in columns and 'quantite_constatee' in VALID_QTY_COLS:
             qty_col = 'quantite_constatee'
             
         inventaire_id_col = 'inventaire_id'
+        if 'inventaire_id' not in columns:
+            raise ValueError(f"Required column 'inventaire_id' not found in {lines_table}")
         
         schema = {
             'lines_table': lines_table,
