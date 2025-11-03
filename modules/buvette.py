@@ -49,6 +49,7 @@ class BuvetteModule:
         self.create_tab_achats()
         self.create_tab_inventaires()
         self.create_tab_mouvements()
+        self.create_tab_stock()
         self.create_tab_bilan()
 
     # ------------------ TAB ARTICLES ------------------
@@ -352,6 +353,78 @@ class BuvetteModule:
                     messagebox.showerror("Erreur", handle_exception(e, "Erreur lors de la suppression du mouvement."))
         else:
             messagebox.showwarning("Sélection", "Sélectionner un mouvement à supprimer.")
+
+    # ------------------ TAB STOCK ------------------
+    def create_tab_stock(self):
+        """Tab Stock Buvette - displays current stock levels for all buvette articles."""
+        frame = ttk.Frame(self.notebook)
+        self.notebook.add(frame, text="Stock Buvette")
+
+        # Create treeview for stock display
+        self.stock_tree = ttk.Treeview(
+            frame, 
+            columns=("name", "categorie", "stock", "unite", "contenance", "commentaire"), 
+            show="headings"
+        )
+        self.stock_tree.heading("name", text="Article")
+        self.stock_tree.heading("categorie", text="Catégorie")
+        self.stock_tree.heading("stock", text="Stock")
+        self.stock_tree.heading("unite", text="Unité")
+        self.stock_tree.heading("contenance", text="Contenance")
+        self.stock_tree.heading("commentaire", text="Commentaire")
+        
+        # Set column widths
+        self.stock_tree.column("name", width=150)
+        self.stock_tree.column("categorie", width=100)
+        self.stock_tree.column("stock", width=80)
+        self.stock_tree.column("unite", width=80)
+        self.stock_tree.column("contenance", width=100)
+        self.stock_tree.column("commentaire", width=200)
+        
+        # Button frame (pack first at bottom)
+        btn_frame = tk.Frame(frame)
+        btn_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=5, pady=5)
+        tk.Button(btn_frame, text="Rafraîchir", command=self.refresh_stock).pack(side=tk.LEFT, padx=5)
+
+        # Add scrollbar (pack second on right side)
+        scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self.stock_tree.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.stock_tree.configure(yscrollcommand=scrollbar.set)
+        
+        # Pack treeview last to fill remaining space
+        self.stock_tree.pack(fill=tk.BOTH, expand=True, padx=3, pady=3)
+        
+        # Initial load
+        self.refresh_stock()
+
+    def refresh_stock(self):
+        """Refresh stock display using stock_tab.get_stock_listing()."""
+        try:
+            from modules.stock_tab import get_stock_listing
+            
+            # Clear existing items
+            for row in self.stock_tree.get_children():
+                self.stock_tree.delete(row)
+            
+            # Get stock listing
+            stock_items = get_stock_listing(scope='buvette')
+            
+            # Populate treeview
+            for item in stock_items:
+                self.stock_tree.insert(
+                    "", "end", 
+                    iid=item.get("id", 0),
+                    values=(
+                        item.get("name", ""),
+                        item.get("categorie", ""),
+                        item.get("stock", 0),
+                        item.get("unite", ""),
+                        item.get("contenance", ""),
+                        item.get("commentaire", "")
+                    )
+                )
+        except Exception as e:
+            messagebox.showerror("Erreur", handle_exception(e, "Erreur lors du rafraîchissement des données de stock."))
 
     # ------------------ TAB BILAN ------------------
     def create_tab_bilan(self):
