@@ -82,13 +82,66 @@ def update_inventaire(inv_id, date_inventaire, event_id, type_inventaire, commen
         if conn:
             conn.close()
 
+def _find_referencing_tables(conn, parent_table):
+    """Return list of tuples (table_name, from_column) for tables that have a FK to parent_table."""
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = [r[0] for r in cur.fetchall()]
+        refs = []
+        for t in tables:
+            try:
+                fk_rows = conn.execute(f"PRAGMA foreign_key_list({t})").fetchall()
+            except Exception:
+                fk_rows = []
+            # fk_rows columns: (id, seq, table, from, to, on_update, on_delete, match)
+            for fk in fk_rows:
+                # Some SQLite returns rows as sqlite3.Row; index accordingly
+                try:
+                    referenced_table = fk[2]
+                    from_col = fk[3]
+                except Exception:
+                    # fallback if row-like access differs
+                    referenced_table = fk["table"] if "table" in fk.keys() else fk[2]
+                    from_col = fk["from"] if "from" in fk.keys() else fk[3]
+                if referenced_table == parent_table:
+                    refs.append((t, from_col))
+        return refs
+    finally:
+        cur.close()
+
 def delete_inventaire(inv_id):
-    """Delete inventaire by ID."""
+    """Supprime un inventaire de façon sûre: supprime les lignes enfants référencées, puis l'inventaire."""
     conn = None
     try:
-        conn = get_conn()
-        conn.execute("DELETE FROM buvette_inventaires WHERE id=?", (inv_id,))
-        conn.commit()
+        conn = get_connection()
+        # Ensure foreign keys enforcement (defensive)
+        try:
+            conn.execute("PRAGMA foreign_keys = ON;")
+        except Exception:
+            pass
+
+        # Discover tables referencing the parent table
+        refs = _find_referencing_tables(conn, "buvette_inventaires")
+
+        # Begin explicit transaction
+        cur = conn.cursor()
+        try:
+            cur.execute("BEGIN")
+            # Delete from child tables first
+            for (table, fk_col) in refs:
+                logger.info("Deleting child rows in %s where %s = %s", table, fk_col, str(inv_id))
+                # Use parameterized query; avoid SQL injection via table name assumption
+                cur.execute(f"DELETE FROM {table} WHERE {fk_col} = ?", (inv_id,))
+            # Finally delete the parent
+            cur.execute("DELETE FROM buvette_inventaires WHERE id = ?", (inv_id,))
+            conn.commit()
+            logger.info("Deleted inventaire id=%s and %d child table deletions", inv_id, len(refs))
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cur.close()
     finally:
         if conn:
             conn.close()
