@@ -130,6 +130,9 @@ tables:
       prix_unitaire:
         inferred: true
         type: REAL
+      purchase_price:
+        inferred: true
+        type: TEXT
       qte:
         inferred: true
         type: TEXT
@@ -265,6 +268,9 @@ tables:
         type: TEXT
   buvette_inventaire_lignes:
     expected_columns:
+      DISTINCT:
+        inferred: true
+        type: TEXT
       action:
         inferred: true
         type: TEXT
@@ -428,12 +434,21 @@ tables:
         type: TEXT
   buvette_mouvements:
     expected_columns:
+      a.name:
+        inferred: true
+        type: TEXT
       article_id:
         inferred: true
         type: INTEGER
       date_mouvement:
         inferred: true
         type: DATE
+      e.date:
+        inferred: true
+        type: DATE
+      e.name:
+        inferred: true
+        type: TEXT
       event_id:
         inferred: true
         type: INTEGER
@@ -443,6 +458,27 @@ tables:
       inventaire_id:
         inferred: true
         type: INTEGER
+      m.article_id:
+        inferred: true
+        type: INTEGER
+      m.date_mouvement:
+        inferred: true
+        type: DATE
+      m.event_id:
+        inferred: true
+        type: INTEGER
+      m.id:
+        inferred: true
+        type: TEXT
+      m.motif:
+        inferred: true
+        type: TEXT
+      m.quantite:
+        inferred: true
+        type: INTEGER
+      m.type_mouvement:
+        inferred: true
+        type: TEXT
       motif:
         inferred: true
         type: TEXT
@@ -2054,6 +2090,9 @@ tables:
       '"quantite":':
         inferred: true
         type: TEXT
+      '''achat''):':
+        inferred: true
+        type: TEXT
       '''buvette'')':
         inferred: true
         type: TEXT
@@ -2066,7 +2105,13 @@ tables:
       '''cost'':':
         inferred: true
         type: TEXT
+      '''inventaire''':
+        inferred: true
+        type: TEXT
       '''inventaire_lignes'':':
+        inferred: true
+        type: TEXT
+      '''sortie''':
         inferred: true
         type: TEXT
       '''unit_price'':':
@@ -2132,6 +2177,9 @@ tables:
       batch_remaining):
         inferred: true
         type: TEXT
+      calculated_stock):
+        inferred: true
+        type: TEXT
       consume_quantity:
         inferred: true
         type: TEXT
@@ -2148,6 +2196,12 @@ tables:
         inferred: true
         type: TEXT
       delta)):
+        inferred: true
+        type: TEXT
+      etc.:
+        inferred: true
+        type: TEXT
+      final:
         inferred: true
         type: TEXT
       id:
@@ -2752,6 +2806,9 @@ tables:
       additional_cost:
         inferred: true
         type: TEXT
+      article_id:
+        inferred: true
+        type: INTEGER
       avg_price:
         inferred: true
         type: TEXT
@@ -2765,6 +2822,9 @@ tables:
         inferred: true
         type: INTEGER
       remaining_to_consume:
+        inferred: true
+        type: TEXT
+      rows:
         inferred: true
         type: TEXT
       total_cost:

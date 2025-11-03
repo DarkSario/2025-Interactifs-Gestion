@@ -507,7 +507,18 @@ class ArticleDialog(tk.Toplevel):
         self.commentaire_var = tk.StringVar(value=article["commentaire"] if article else "")
         tk.Entry(self, textvariable=self.commentaire_var).grid(row=4, column=1)
 
-        tk.Button(self, text="Enregistrer", command=self.save).grid(row=5, column=0, columnspan=2, pady=8)
+        # Added purchase_price field for manual price editing (audit/fixes-buvette)
+        tk.Label(self, text="Prix achat/unité (€)").grid(row=5, column=0, sticky="w")
+        purchase_price_value = ""
+        if article and article.get("purchase_price") is not None:
+            try:
+                purchase_price_value = f"{float(article['purchase_price']):.2f}"
+            except (ValueError, TypeError):
+                pass
+        self.purchase_price_var = tk.StringVar(value=purchase_price_value)
+        tk.Entry(self, textvariable=self.purchase_price_var).grid(row=5, column=1)
+
+        tk.Button(self, text="Enregistrer", command=self.save).grid(row=6, column=0, columnspan=2, pady=8)
 
     def save(self):
         name = self.name_var.get()
@@ -515,14 +526,25 @@ class ArticleDialog(tk.Toplevel):
         unite = self.unite_var.get()
         contenance = self.contenance_var.get()
         commentaire = self.commentaire_var.get()
+        
+        # Parse and validate purchase_price from input
+        purchase_price = None
+        purchase_price_str = self.purchase_price_var.get().strip()
+        if purchase_price_str:
+            try:
+                purchase_price = float(purchase_price_str)
+            except ValueError:
+                messagebox.showwarning("Saisie", "Le prix d'achat doit être un nombre valide.")
+                return
+        
         if not name:
             messagebox.showwarning("Saisie", "Le nom est obligatoire.")
             return
         try:
             if self.article:
-                update_article(self.article["id"], name, categorie, unite, commentaire, contenance)
+                update_article(self.article["id"], name, categorie, unite, commentaire, contenance, purchase_price)
             else:
-                insert_article(name, categorie, unite, commentaire, contenance)
+                insert_article(name, categorie, unite, commentaire, contenance, purchase_price)
             self.on_done()
             self.destroy()
         except Exception as e:

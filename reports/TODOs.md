@@ -1,5 +1,5 @@
 # Database Access TODOs
-Generated: 2025-11-03T19:17:00.269086
+Generated: 2025-11-03T19:58:08.921882
 
 This report lists action items for fixing database access issues.
 
@@ -289,57 +289,57 @@ Solution: Use `_row_to_dict(row)` or `_rows_to_dicts(rows)` from modules/db_row_
   row.get("date_adhesion", "")
   ```
 
-- [ ] modules/buvette_bilan_db.py:85
+- [ ] modules/buvette_bilan_db.py:89
   ```python
   if row_dict and row_dict.get("qte"):
   ```
 
-- [ ] modules/buvette_bilan_db.py:106
+- [ ] modules/buvette_bilan_db.py:110
   ```python
   return row_dict.get("recette", 0.0) if row_dict else 0.0
   ```
 
-- [ ] modules/buvette.py:426
+- [ ] modules/buvette.py:430
   ```python
   unite_display = item.get("unite_type", item.get("unite", ""))
   ```
 
-- [ ] modules/buvette.py:426
+- [ ] modules/buvette.py:430
   ```python
   unite_display = item.get("unite_type", item.get("unite", ""))
-  ```
-
-- [ ] modules/buvette.py:427
-  ```python
-  quantite_display = item.get("quantite", "")
   ```
 
 - [ ] modules/buvette.py:431
   ```python
-  iid=item.get("id", 0),
-  ```
-
-- [ ] modules/buvette.py:433
-  ```python
-  item.get("name", ""),
-  ```
-
-- [ ] modules/buvette.py:434
-  ```python
-  item.get("categorie", ""),
+  quantite_display = item.get("quantite", "")
   ```
 
 - [ ] modules/buvette.py:435
   ```python
-  item.get("stock", 0),
+  iid=item.get("id", 0),
+  ```
+
+- [ ] modules/buvette.py:437
+  ```python
+  item.get("name", ""),
   ```
 
 - [ ] modules/buvette.py:438
   ```python
-  item.get("contenance", ""),
+  item.get("categorie", ""),
   ```
 
 - [ ] modules/buvette.py:439
+  ```python
+  item.get("stock", 0),
+  ```
+
+- [ ] modules/buvette.py:442
+  ```python
+  item.get("contenance", ""),
+  ```
+
+- [ ] modules/buvette.py:443
   ```python
   item.get("commentaire", "")
   ```
@@ -440,7 +440,7 @@ Benefit: Automatic WAL mode, busy timeout, and consistent error handling
   """AST-based replacer: replace sqlite3.connect(...) with get_connection(...)
   ```
 
-- [ ] scripts/replace_sqlite_connect.py:28
+- [ ] scripts/replace_sqlite_connect.py:41
   ```python
   # match sqlite3.connect(...)
   ```

@@ -9,12 +9,12 @@ Il sert de référence pour les migrations et la maintenance du schéma de base 
 
 - **article_purchase_batches**: 7 colonnes, référencée dans 1 fichier(s)
 - **articles**: 17 colonnes, référencée dans 2 fichier(s)
-- **buvette_achats**: 24 colonnes, référencée dans 3 fichier(s)
+- **buvette_achats**: 25 colonnes, référencée dans 3 fichier(s)
 - **buvette_articles**: 26 colonnes, référencée dans 9 fichier(s)
 - **buvette_articles_new**: 10 colonnes, référencée dans 1 fichier(s)
-- **buvette_inventaire_lignes**: 49 colonnes, référencée dans 5 fichier(s)
+- **buvette_inventaire_lignes**: 50 colonnes, référencée dans 5 fichier(s)
 - **buvette_inventaires**: 4 colonnes, référencée dans 3 fichier(s)
-- **buvette_mouvements**: 9 colonnes, référencée dans 2 fichier(s)
+- **buvette_mouvements**: 19 colonnes, référencée dans 3 fichier(s)
 - **buvette_recettes**: 2 colonnes, référencée dans 2 fichier(s)
 - **categories**: 28 colonnes, référencée dans 2 fichier(s)
 - **child**: 5 colonnes, référencée dans 0 fichier(s)
@@ -38,7 +38,7 @@ Il sert de référence pour les migrations et la maintenance du schéma de base 
 - **historique_clotures**: 5 colonnes, référencée dans 1 fichier(s)
 - **inventaire_lignes**: 8 colonnes, référencée dans 2 fichier(s)
 - **inventaires**: 6 colonnes, référencée dans 1 fichier(s)
-- **inventory_stock_journal**: 58 colonnes, référencée dans 1 fichier(s)
+- **inventory_stock_journal**: 64 colonnes, référencée dans 1 fichier(s)
 - **membres**: 22 colonnes, référencée dans 3 fichier(s)
 - **mouvements_stock**: 16 colonnes, référencée dans 1 fichier(s)
 - **orders**: 1 colonnes, référencée dans 1 fichier(s)
@@ -47,7 +47,7 @@ Il sert de référence pour les migrations et la maintenance du schéma de base 
 - **stock**: 33 colonnes, référencée dans 6 fichier(s)
 - **table**: 0 colonnes, référencée dans 1 fichier(s)
 - **table_name**: 4 colonnes, référencée dans 1 fichier(s)
-- **this**: 8 colonnes, référencée dans 0 fichier(s)
+- **this**: 10 colonnes, référencée dans 0 fichier(s)
 - **tree**: 32 colonnes, référencée dans 0 fichier(s)
 - **valeurs_modeles_colonnes**: 2 colonnes, référencée dans 3 fichier(s)
 
@@ -121,6 +121,7 @@ Il sert de référence pour les migrations et la maintenance du schéma de base 
 - `lignes_apres` (type inféré: TEXT)
 - `lignes_avant` (type inféré: TEXT)
 - `prix_unitaire` (type inféré: REAL)
+- `purchase_price` (type inféré: TEXT)
 - `qte` (type inféré: TEXT)
 - `quantite` (type inféré: INTEGER)
 - `reason` (type inféré: TEXT)
@@ -207,6 +208,7 @@ Il sert de référence pour les migrations et la maintenance du schéma de base 
 
 **Colonnes détectées:**
 
+- `DISTINCT` (type inféré: TEXT)
 - `action` (type inféré: TEXT)
 - `anchor` (type inféré: TEXT)
 - `article` (type inféré: TEXT)
@@ -288,11 +290,21 @@ Il sert de référence pour les migrations et la maintenance du schéma de base 
 
 **Colonnes détectées:**
 
+- `a.name` (type inféré: TEXT)
 - `article_id` (type inféré: INTEGER)
 - `date_mouvement` (type inféré: DATE)
+- `e.date` (type inféré: DATE)
+- `e.name` (type inféré: TEXT)
 - `event_id` (type inféré: INTEGER)
 - `id` (type inféré: INTEGER)
 - `inventaire_id` (type inféré: INTEGER)
+- `m.article_id` (type inféré: INTEGER)
+- `m.date_mouvement` (type inféré: DATE)
+- `m.event_id` (type inféré: INTEGER)
+- `m.id` (type inféré: TEXT)
+- `m.motif` (type inféré: TEXT)
+- `m.quantite` (type inféré: INTEGER)
+- `m.type_mouvement` (type inféré: TEXT)
 - `motif` (type inféré: TEXT)
 - `quantite` (type inféré: INTEGER)
 - `rows` (type inféré: TEXT)
@@ -302,6 +314,7 @@ Il sert de référence pour les migrations et la maintenance du schéma de base 
 
 - `modules/buvette_db.py`
 - `modules/buvette_mouvements_db.py`
+- `modules/stock_db.py`
 
 ---
 
@@ -1109,11 +1122,14 @@ Il sert de référence pour les migrations et la maintenance du schéma de base 
 
 - `"` (type inféré: TEXT)
 - `"quantite":` (type inféré: TEXT)
+- `'achat'):` (type inféré: TEXT)
 - `'buvette')` (type inféré: TEXT)
 - `'consumed_batches':` (type inféré: TEXT)
 - `'consumed_quantity':` (type inféré: TEXT)
 - `'cost':` (type inféré: TEXT)
+- `'inventaire'` (type inféré: TEXT)
 - `'inventaire_lignes':` (type inféré: TEXT)
+- `'sortie'` (type inféré: TEXT)
 - `'unit_price':` (type inféré: TEXT)
 - `(article_id` (type inféré: INTEGER)
 - `(inv_id` (type inféré: INTEGER)
@@ -1135,12 +1151,15 @@ Il sert de référence pour les migrations et la maintenance du schéma de base 
 - `article_purchase_batches)")` (type inféré: TEXT)
 - `batch_id))` (type inféré: TEXT)
 - `batch_remaining)` (type inféré: TEXT)
+- `calculated_stock)` (type inféré: TEXT)
 - `consume_quantity` (type inféré: TEXT)
 - `cost={cost_from_batch}"` (type inféré: TEXT)
 - `created_at` (type inféré: TEXT)
 - `current_stock` (type inféré: INTEGER)
 - `delta` (type inféré: TEXT)
 - `delta))` (type inféré: TEXT)
+- `etc.` (type inféré: TEXT)
+- `final` (type inféré: TEXT)
 - `id` (type inféré: INTEGER)
 - `inv_id):` (type inféré: TEXT)
 - `inventaire_id` (type inféré: INTEGER)
@@ -1543,11 +1562,13 @@ Il sert de référence pour les migrations et la maintenance du schéma de base 
 **Colonnes détectées:**
 
 - `additional_cost` (type inféré: TEXT)
+- `article_id` (type inféré: INTEGER)
 - `avg_price` (type inféré: TEXT)
 - `batches_used` (type inféré: TEXT)
 - `cost` (type inféré: TEXT)
 - `id` (type inféré: INTEGER)
 - `remaining_to_consume` (type inféré: TEXT)
+- `rows` (type inféré: TEXT)
 - `total_cost` (type inféré: REAL)
 - `unit_price` (type inféré: TEXT)
 
