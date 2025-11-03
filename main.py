@@ -79,6 +79,13 @@ class MainApp(tk.Tk):
             except Exception as e:
                 print(f"Warning: Schema check failed: {e}")
         
+        # Initialize stock tables at startup
+        try:
+            from modules.stock_db import ensure_stock_tables
+            ensure_stock_tables()
+        except Exception as e:
+            print(f"Warning: Could not initialize stock tables: {e}")
+        
         self.create_menu()
         self.create_home_buttons()
 

@@ -23,6 +23,7 @@ STANDARDIZATION (PR copilot/audit-db-access-standardization):
 from db.db import get_connection
 from utils.db_helpers import rows_to_dicts, row_to_dict
 from utils.app_logger import get_logger
+from modules.stock_db import adjust_stock
 import sqlite3
 
 logger = get_logger("buvette_db")
@@ -127,7 +128,7 @@ def get_achat_by_id(achat_id):
             conn.close()
 
 def insert_achat(article_id, date_achat, quantite, prix_unitaire, fournisseur, facture, exercice):
-    """Insert new achat."""
+    """Insert new achat and adjust stock."""
     conn = None
     try:
         conn = get_conn()
@@ -136,6 +137,13 @@ def insert_achat(article_id, date_achat, quantite, prix_unitaire, fournisseur, f
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (article_id, date_achat, quantite, prix_unitaire, fournisseur, facture, exercice))
         conn.commit()
+        
+        # Adjust stock: add purchased quantity
+        try:
+            adjust_stock(article_id, quantite, reason=f"Achat: facture {facture}")
+            logger.info(f"Adjusted stock for article {article_id} by +{quantite} (purchase)")
+        except Exception as e:
+            logger.warning(f"Could not adjust stock after purchase: {e}")
     finally:
         if conn:
             conn.close()
@@ -156,12 +164,31 @@ def update_achat(achat_id, article_id, date_achat, quantite, prix_unitaire, four
             conn.close()
 
 def delete_achat(achat_id):
-    """Delete achat by ID."""
+    """Delete achat by ID and revert stock adjustment."""
     conn = None
     try:
         conn = get_conn()
-        conn.execute("DELETE FROM buvette_achats WHERE id=?", (achat_id,))
-        conn.commit()
+        
+        # Get achat details before deletion to revert stock
+        row = conn.execute(
+            "SELECT article_id, quantite FROM buvette_achats WHERE id=?",
+            (achat_id,)
+        ).fetchone()
+        
+        if row:
+            article_id = row[0]
+            quantite = row[1]
+            
+            # Delete the achat
+            conn.execute("DELETE FROM buvette_achats WHERE id=?", (achat_id,))
+            conn.commit()
+            
+            # Revert stock: subtract the purchased quantity
+            try:
+                adjust_stock(article_id, -quantite, reason=f"Suppression achat #{achat_id}")
+                logger.info(f"Adjusted stock for article {article_id} by -{quantite} (delete purchase)")
+            except Exception as e:
+                logger.warning(f"Could not revert stock after deleting purchase: {e}")
     finally:
         if conn:
             conn.close()
