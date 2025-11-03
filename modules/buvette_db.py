@@ -223,7 +223,12 @@ def get_achat_by_id(achat_id):
             conn.close()
 
 def insert_achat(article_id, date_achat, quantite, prix_unitaire, fournisseur, facture, exercice):
-    """Insert new achat and adjust stock."""
+    """
+    Insert new achat, adjust stock, and update purchase_price.
+    
+    TODO (audit/fixes-buvette): Updates purchase_price to latest prix_unitaire
+    See reports/TODOs.md for review of price update logic
+    """
     conn = None
     try:
         conn = get_conn()
@@ -231,6 +236,19 @@ def insert_achat(article_id, date_achat, quantite, prix_unitaire, fournisseur, f
             INSERT INTO buvette_achats (article_id, date_achat, quantite, prix_unitaire, fournisseur, facture, exercice)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (article_id, date_achat, quantite, prix_unitaire, fournisseur, facture, exercice))
+        
+        # Update article's purchase_price if prix_unitaire is provided
+        if prix_unitaire is not None:
+            try:
+                conn.execute("""
+                    UPDATE buvette_articles 
+                    SET purchase_price = ? 
+                    WHERE id = ?
+                """, (prix_unitaire, article_id))
+                logger.info(f"Updated purchase_price for article {article_id} to {prix_unitaire}")
+            except Exception as e:
+                logger.warning(f"Could not update purchase_price for article {article_id}: {e}")
+        
         conn.commit()
         
         # Adjust stock: add purchased quantity
@@ -244,7 +262,12 @@ def insert_achat(article_id, date_achat, quantite, prix_unitaire, fournisseur, f
             conn.close()
 
 def update_achat(achat_id, article_id, date_achat, quantite, prix_unitaire, fournisseur, facture, exercice):
-    """Update existing achat."""
+    """
+    Update existing achat and update purchase_price if changed.
+    
+    TODO (audit/fixes-buvette): Updates purchase_price to latest prix_unitaire
+    See reports/TODOs.md for review of price update logic
+    """
     conn = None
     try:
         conn = get_conn()
@@ -253,6 +276,19 @@ def update_achat(achat_id, article_id, date_achat, quantite, prix_unitaire, four
                 fournisseur=?, facture=?, exercice=?
             WHERE id=?
         """, (article_id, date_achat, quantite, prix_unitaire, fournisseur, facture, exercice, achat_id))
+        
+        # Update article's purchase_price if prix_unitaire is provided
+        if prix_unitaire is not None:
+            try:
+                conn.execute("""
+                    UPDATE buvette_articles 
+                    SET purchase_price = ? 
+                    WHERE id = ?
+                """, (prix_unitaire, article_id))
+                logger.info(f"Updated purchase_price for article {article_id} to {prix_unitaire}")
+            except Exception as e:
+                logger.warning(f"Could not update purchase_price for article {article_id}: {e}")
+        
         conn.commit()
     finally:
         if conn:

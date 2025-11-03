@@ -19,7 +19,7 @@ from db.db import get_connection
 from utils.db_helpers import rows_to_dicts, row_to_dict
 from utils.app_logger import get_logger
 from modules.stock_db import (
-    revert_inventory_effect, apply_inventory_snapshot
+    revert_inventory_effect, apply_inventory_snapshot, recompute_stock_for_article
 )
 
 logger = get_logger("buvette_inventaire_db")
@@ -125,11 +125,30 @@ def _find_referencing_tables(conn, parent_table):
         cur.close()
 
 def delete_inventaire(inv_id):
-    """Supprime un inventaire de façon sûre: annule les effets stock, supprime les lignes enfants, puis l'inventaire."""
+    """
+    Supprime un inventaire de façon sûre: annule les effets stock, supprime les lignes enfants, 
+    puis l'inventaire, et recalcule le stock des articles affectés.
+    
+    TODO (audit/fixes-buvette): Voir reports/TODOs.md pour revue du processus de suppression
+    """
     conn = None
     try:
         conn = get_conn()
-        # First, revert inventory effects on stock to maintain consistency
+        
+        # Step 1: Get list of affected articles before deletion
+        affected_article_ids = set()
+        try:
+            rows = conn.execute("""
+                SELECT DISTINCT article_id 
+                FROM buvette_inventaire_lignes 
+                WHERE inventaire_id = ?
+            """, (inv_id,)).fetchall()
+            affected_article_ids = {row[0] for row in rows if row[0] is not None}
+            logger.info(f"Inventory {inv_id} affects {len(affected_article_ids)} articles")
+        except Exception as e:
+            logger.warning(f"Could not get affected articles for inventory {inv_id}: {e}")
+        
+        # Step 2: Revert inventory effects on stock to maintain consistency
         try:
             revert_inventory_effect(conn, inv_id)
             logger.info(f"Reverted stock effects for inventory {inv_id}")
@@ -144,10 +163,10 @@ def delete_inventaire(inv_id):
         except Exception:
             pass
 
-        # Discover tables referencing the parent table
+        # Step 3: Discover tables referencing the parent table
         refs = _find_referencing_tables(conn, "buvette_inventaires")
 
-        # Begin explicit transaction
+        # Step 4: Begin explicit transaction for deletion
         cur = conn.cursor()
         try:
             cur.execute("BEGIN")
@@ -165,6 +184,20 @@ def delete_inventaire(inv_id):
             raise
         finally:
             cur.close()
+        
+        # Step 5: Recompute stock for each affected article
+        # This ensures stock reflects reality after inventory deletion
+        for article_id in affected_article_ids:
+            try:
+                recompute_stock_for_article(conn, article_id)
+                logger.info(f"Recomputed stock for article {article_id} after inventory deletion")
+            except Exception as e:
+                logger.error(
+                    f"Failed to recompute stock for article {article_id}: {e}"
+                )
+        
+        conn.commit()
+        
     finally:
         if conn:
             conn.close()

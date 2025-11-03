@@ -453,3 +453,78 @@ def consume_purchase_batches_fifo(conn, article_id, consume_quantity, scope='buv
             f"Error consuming purchase batches for article {article_id}: {e}"
         )
         raise
+
+
+def recompute_stock_for_article(conn, article_id):
+    """
+    Recalcule le stock d'un article en agrégeant tous les mouvements signés.
+    
+    Cette fonction recalcule le stock à partir de zéro en sommant tous les
+    mouvements de type 'entrée' (positifs) et 'sortie' (négatifs).
+    
+    Args:
+        conn: Database connection
+        article_id: ID de l'article
+    
+    Returns:
+        int: Le nouveau stock calculé
+        
+    Note:
+        - Les mouvements de type 'entrée' sont comptés positivement
+        - Les mouvements de type 'sortie' sont comptés négativement
+        - Le stock ne peut pas être négatif (minimum 0)
+        - Cette fonction met à jour la colonne stock dans buvette_articles
+        
+    TODO (audit/fixes-buvette): 
+        Voir reports/TODOs.md pour revue des types de mouvements supportés
+    """
+    try:
+        cursor = conn.cursor()
+        
+        # Get all movements for this article
+        # type_mouvement can be: 'entrée', 'sortie', 'inventaire', etc.
+        rows = cursor.execute("""
+            SELECT type_mouvement, quantite
+            FROM buvette_mouvements
+            WHERE article_id = ?
+            ORDER BY date_mouvement ASC, id ASC
+        """, (article_id,)).fetchall()
+        
+        calculated_stock = 0
+        
+        for row in rows:
+            type_mouvement = row[0]
+            quantite = row[1] if row[1] is not None else 0
+            
+            # Map movement types to signed quantities
+            # 'entrée' and 'inventaire' add to stock
+            # 'sortie' reduces stock
+            if type_mouvement in ('entrée', 'inventaire', 'achat'):
+                calculated_stock += quantite
+            elif type_mouvement == 'sortie':
+                calculated_stock -= quantite
+            else:
+                # Unknown type - log warning but don't fail
+                logger.warning(
+                    f"Unknown movement type '{type_mouvement}' for article {article_id}, "
+                    f"treating as neutral (quantity: {quantite})"
+                )
+        
+        # Stock cannot be negative
+        calculated_stock = max(0, calculated_stock)
+        
+        # Update the article's stock
+        set_stock(conn, article_id, calculated_stock)
+        
+        logger.info(
+            f"Recomputed stock for article {article_id}: "
+            f"{len(rows)} movements processed, final stock = {calculated_stock}"
+        )
+        
+        return calculated_stock
+        
+    except Exception as e:
+        logger.error(
+            f"Error recomputing stock for article {article_id}: {e}"
+        )
+        raise

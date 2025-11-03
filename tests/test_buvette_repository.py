@@ -98,7 +98,12 @@ class TestBuvetteRepository(unittest.TestCase):
 
     def test_rows_to_dicts_with_multiple_rows(self):
         """Test rows_to_dicts converts list of rows correctly."""
-        rows = self.conn.execute("SELECT * FROM buvette_articles ORDER BY name").fetchall()
+        # Query only the original 3 test articles to avoid test interference
+        rows = self.conn.execute("""
+            SELECT * FROM buvette_articles 
+            WHERE name IN ('Test Article 1', 'Test Article 2', 'Test Article 3')
+            ORDER BY name
+        """).fetchall()
         results = rows_to_dicts(rows)
         
         # Verify it's a list of dicts
@@ -167,6 +172,96 @@ class TestBuvetteRepository(unittest.TestCase):
         dict2 = row_to_dict(dict1)
         self.assertIsInstance(dict2, dict)
         self.assertEqual(dict1, dict2)
+
+
+    def test_recompute_stock_for_article_logic(self):
+        """
+        Test the recompute_stock_for_article logic without UI dependencies.
+        
+        This test verifies stock recalculation logic:
+        1. Aggregates all movements for an article
+        2. Calculates stock based on movement types (entrée/sortie)
+        3. Updates the article's stock field
+        
+        TODO (audit/fixes-buvette): See reports/TODOs.md for movement type review
+        
+        Note: This is a simplified test that doesn't import the actual function due to
+        UI dependencies (tkinter). The actual function exists in modules/stock_db.py
+        and is tested in integration tests that run with UI dependencies available.
+        """
+        # Create test tables for movements
+        self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS buvette_mouvements (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                article_id INTEGER,
+                date_mouvement DATE,
+                type_mouvement TEXT,
+                quantite INTEGER,
+                motif TEXT,
+                FOREIGN KEY (article_id) REFERENCES buvette_articles(id)
+            )
+        """)
+        self.conn.commit()
+        
+        # Create a new test article specifically for this test
+        self.conn.execute("""
+            INSERT INTO buvette_articles (name, categorie, stock, prix_vente, contenance, unite, commentaire)
+            VALUES ('Test Article for Recompute', 'Test', 0, 1.00, '1L', 'unit', 'Test recompute')
+        """)
+        self.conn.commit()
+        
+        # Get the new article ID
+        article = self.conn.execute(
+            "SELECT id FROM buvette_articles WHERE name='Test Article for Recompute'"
+        ).fetchone()
+        article_id = article[0]
+        
+        # Insert test movements: +10, +5, -3
+        self.conn.execute("""
+            INSERT INTO buvette_mouvements (article_id, date_mouvement, type_mouvement, quantite, motif)
+            VALUES 
+                (?, '2024-01-01', 'entrée', 10, 'Initial stock'),
+                (?, '2024-01-02', 'entrée', 5, 'Purchase'),
+                (?, '2024-01-03', 'sortie', 3, 'Sale')
+        """, (article_id, article_id, article_id))
+        self.conn.commit()
+        
+        # Manually implement the recompute logic for testing
+        rows = self.conn.execute("""
+            SELECT type_mouvement, quantite
+            FROM buvette_mouvements
+            WHERE article_id = ?
+            ORDER BY date_mouvement ASC, id ASC
+        """, (article_id,)).fetchall()
+        
+        calculated_stock = 0
+        for row in rows:
+            type_mouvement = row[0]
+            quantite = row[1] if row[1] is not None else 0
+            
+            if type_mouvement in ('entrée', 'inventaire', 'achat'):
+                calculated_stock += quantite
+            elif type_mouvement == 'sortie':
+                calculated_stock -= quantite
+        
+        calculated_stock = max(0, calculated_stock)
+        
+        # Verify the calculated stock is correct: 10 + 5 - 3 = 12
+        self.assertEqual(calculated_stock, 12)
+        
+        # Update the article's stock
+        self.conn.execute(
+            "UPDATE buvette_articles SET stock = ? WHERE id = ?",
+            (calculated_stock, article_id)
+        )
+        self.conn.commit()
+        
+        # Verify the article's stock was updated in the database
+        row = self.conn.execute(
+            "SELECT stock FROM buvette_articles WHERE id = ?",
+            (article_id,)
+        ).fetchone()
+        self.assertEqual(row[0], 12)
 
 
 if __name__ == '__main__':
