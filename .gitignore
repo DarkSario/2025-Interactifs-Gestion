@@ -1,21 +1,30 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*.egg-info/
-dist/
-build/
-.env
+*$py.class
+
+# Virtual environments
 .venv/
-.env.*
-.ipynb_checkpoints/
+venv/
+env/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Pytest
+.cache/
 
 # IDEs
 .vscode/
 .idea/
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
 
-# Logs
-logs/
+# Environment files
+.env
+.env.local
