@@ -12,6 +12,10 @@ MODIFICATIONS APPLIQUÉES (PR corrections buvette - copilot/auto-fix-buvette):
 - AchatDialog: utilisation de Combobox pour sélectionner un article
 - refresh_bilan(): protection des agrégations contre les valeurs None
 - BuvetteModule.__init__: appel de ensure_stock_column() au démarrage pour garantir la colonne stock existe
+
+TODO (audit/fixes-buvette):
+- UI handlers properly call refresh functions after DB modifications
+- Review reports/TODOs.md for additional audit findings
 """
 
 import os

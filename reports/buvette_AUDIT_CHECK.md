@@ -33,7 +33,6 @@ Répertoire de travail: /home/runner/work/2025-Interactifs-Gestion/2025-Interact
 [92m✓ Aucun problème trouvé dans buvette.py[0m
 
 [94m[1m--- Exécution des tests unitaires ---[0m
-[93m⚠ pytest n'est pas installé. Installation en cours...[0m
 ============================= test session starts ==============================
 platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python
 cachedir: .pytest_cache

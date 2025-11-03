@@ -5,6 +5,10 @@ STANDARDIZATION (PR copilot/audit-db-access-standardization):
 - Improved connection management with try/finally blocks to reduce locks
 - Converted sqlite3.Row to dicts for consistent .get() access patterns
 - Added docstrings and error handling
+
+TODO (audit/fixes-buvette): 
+- Added SELECT aliases for UI compatibility (date_mouvement AS date, etc.)
+- Review reports/TODOs.md for additional changes
 """
 
 from db.db import get_connection
@@ -20,12 +24,24 @@ def get_conn():
 
 # ----- MOUVEMENTS -----
 def list_mouvements():
-    """List all mouvements with article and event info, returns list of dicts."""
+    """List all mouvements with article and event info, returns list of dicts.
+    
+    TODO (audit/fixes-buvette): Added aliases for UI compatibility
+    - m.date_mouvement AS date
+    - m.type_mouvement AS type  
+    - m.motif AS commentaire
+    """
     conn = None
     try:
         conn = get_conn()
         rows = conn.execute("""
-            SELECT m.*, a.name AS article_name, e.name AS event_name, e.date AS event_date
+            SELECT m.id, m.article_id, m.quantite, m.event_id,
+                   m.date_mouvement AS date, 
+                   m.type_mouvement AS type, 
+                   m.motif AS commentaire,
+                   a.name AS article_name, 
+                   e.name AS event_name, 
+                   e.date AS event_date
             FROM buvette_mouvements m
             LEFT JOIN buvette_articles a ON m.article_id = a.id
             LEFT JOIN events e ON m.event_id = e.id
@@ -37,12 +53,21 @@ def list_mouvements():
             conn.close()
 
 def get_mouvement_by_id(mvt_id):
-    """Get mouvement by ID with article and event info, returns dict or None."""
+    """Get mouvement by ID with article and event info, returns dict or None.
+    
+    TODO (audit/fixes-buvette): Added aliases for UI compatibility
+    """
     conn = None
     try:
         conn = get_conn()
         row = conn.execute("""
-            SELECT m.*, a.name AS article_name, e.name AS event_name, e.date AS event_date
+            SELECT m.id, m.article_id, m.quantite, m.event_id,
+                   m.date_mouvement AS date, 
+                   m.type_mouvement AS type, 
+                   m.motif AS commentaire,
+                   a.name AS article_name, 
+                   e.name AS event_name, 
+                   e.date AS event_date
             FROM buvette_mouvements m
             LEFT JOIN buvette_articles a ON m.article_id = a.id
             LEFT JOIN events e ON m.event_id = e.id

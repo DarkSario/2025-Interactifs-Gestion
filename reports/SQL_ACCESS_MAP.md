@@ -1,15 +1,15 @@
 # SQL Access Map
-Generated: 2025-11-03T18:27:54.070332
+Generated: 2025-11-03T19:17:00.268336
 This report maps all database access patterns in the codebase.
 
 ## Summary
-- sqlite3 imports: 42
+- sqlite3 imports: 43
 - get_connection() calls: 193
-- fetch patterns: 290
-- row.get() usage: 61
+- fetch patterns: 296
+- row.get() usage: 68
 - Positional indexing: 172
-- execute() calls: 680
-- sqlite3.connect() calls: 61
+- execute() calls: 688
+- sqlite3.connect() calls: 62
 
 ## SQLite3 Imports
 - `db/db.py:12`
@@ -29,6 +29,7 @@ This report maps all database access patterns in the codebase.
 - `tests/test_inventory_lines_loader.py:8`
 - `tests/test_articles_unite_migration.py:13`
 - `tests/test_db_api_retry.py:7`
+- `tests/test_buvette_repository.py:11`
 - `tests/test_row_to_dict_conversion.py:9`
 - `tests/test_delete_inventaire.py:2`
 - `tests/test_buvette_inventaire.py:2`
@@ -731,6 +732,14 @@ This report maps all database access patterns in the codebase.
 - Line 155 `.fetchall()`: `columns_before = [row[1] for row in cursor.fetchall()]`
 - Line 164 `.fetchall()`: `columns_after = [row[1] for row in cursor.fetchall()]`
 
+### tests/test_buvette_repository.py
+- Line 66 `.fetchone()`: `row = self.conn.execute("SELECT * FROM buvette_articles WHERE name='Test Article 1'").fetchone()`
+- Line 87 `.fetchone()`: `row = self.conn.execute("SELECT * FROM buvette_articles WHERE name='Test Article 3'").fetchone()`
+- Line 160 `.fetchone()`: `row = self.conn.execute("SELECT * FROM buvette_articles LIMIT 1").fetchone()`
+- Line 101 `.fetchall()`: `rows = self.conn.execute("SELECT * FROM buvette_articles ORDER BY name").fetchall()`
+- Line 125 `.fetchall()`: `rows = self.conn.execute("SELECT * FROM buvette_articles").fetchall()`
+- Line 145 `.fetchall()`: `rows = self.conn.execute("SELECT * FROM buvette_articles").fetchall()`
+
 ### tests/test_buvette_stock.py
 - Line 74 `.fetchone()`: `row = cursor.fetchone()`
 - Line 90 `.fetchone()`: `row = cursor.fetchone()`
@@ -895,6 +904,15 @@ These MUST be fixed by converting rows to dicts first.
 - Line 86 (var: `row_dict`): `self.assertEqual(row_dict.get('categorie'), 'Boissons')`
 - Line 87 (var: `row_dict`): `self.assertEqual(row_dict.get('stock'), 10)`
 - Line 88 (var: `row_dict`): `self.assertEqual(row_dict.get('nonexistent', 'default'), 'default')`
+
+### tests/test_buvette_repository.py
+- Line 73 (var: `result`): `self.assertEqual(result.get('name'), 'Test Article 1')`
+- Line 74 (var: `result`): `self.assertEqual(result.get('categorie'), 'Boissons')`
+- Line 75 (var: `result`): `self.assertEqual(result.get('stock'), 10)`
+- Line 78 (var: `result`): `self.assertEqual(result.get('nonexistent_field', 'default'), 'default')`
+- Line 93 (var: `result`): `self.assertIsNone(result.get('commentaire'))`
+- Line 94 (var: `result`): `self.assertEqual(result.get('commentaire', 'default'), None)  # NULL is present but None`
+- Line 97 (var: `result`): `self.assertEqual(result.get('nonexistent', 'default'), 'default')`
 
 ### tests/test_db_api_retry.py
 - Line 219 (var: `result`): `assert result.get('name') == 'test1'`

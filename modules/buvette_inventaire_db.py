@@ -9,6 +9,10 @@ STANDARDIZATION (PR copilot/audit-db-access-standardization):
 STOCK MANAGEMENT (PR fix/stock-and-unite):
 - Added revert_inventory_effect call in delete_inventaire to prevent FK constraint failures
 - Added apply_inventory_snapshot_wrapper helper for inventory create/update flows
+
+TODO (audit/fixes-buvette):
+- All functions normalized to return dicts via rows_to_dicts/row_to_dict
+- Review reports/TODOs.md for additional audit findings
 """
 
 from db.db import get_connection

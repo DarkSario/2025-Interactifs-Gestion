@@ -12,10 +12,23 @@ from pathlib import Path
 import argparse
 
 IGNOREFILES = ["venv", ".venv", ".git", "__pycache__", "tests"]
+# Also skip migration scripts and critical DB infrastructure that must remain raw
+SKIP_PATTERNS = ["migration", "migrate_", "db_diagnostics", "enable_wal", "update_db_structure", "create_compat_views"]
+# Skip files that define get_connection (they need sqlite3.connect internally)
+SKIP_FILES = {"db/db.py", "modules/db_api.py", "src/db/compat.py", "src/db/connection.py"}
 
 def should_skip(p: Path):
     for x in IGNOREFILES:
         if x in p.parts:
+            return True
+    # Skip files matching skip patterns (migrations, diagnostics, etc.)
+    for pattern in SKIP_PATTERNS:
+        if pattern in p.name:
+            return True
+    # Skip specific files that define get_connection - check string path
+    path_str = str(p)
+    for skip_file in SKIP_FILES:
+        if path_str.endswith(skip_file) or skip_file in path_str:
             return True
     return False
 
