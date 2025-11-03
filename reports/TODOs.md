@@ -1,5 +1,5 @@
 # Database Access TODOs
-Generated: 2025-11-03T17:45:52.846234
+Generated: 2025-11-03T18:27:54.071200
 
 This report lists action items for fixing database access issues.
 
@@ -102,6 +102,31 @@ Solution: Use `_row_to_dict(row)` or `_rows_to_dicts(rows)` from modules/db_row_
 - [ ] tests/test_row_to_dict_conversion.py:139
   ```python
   row.get('name')
+  ```
+
+- [ ] tests/test_buvette_audit.py:78
+  ```python
+  row.get('name')
+  ```
+
+- [ ] tests/test_buvette_audit.py:85
+  ```python
+  self.assertEqual(row_dict.get('name'), 'Test Article 1')
+  ```
+
+- [ ] tests/test_buvette_audit.py:86
+  ```python
+  self.assertEqual(row_dict.get('categorie'), 'Boissons')
+  ```
+
+- [ ] tests/test_buvette_audit.py:87
+  ```python
+  self.assertEqual(row_dict.get('stock'), 10)
+  ```
+
+- [ ] tests/test_buvette_audit.py:88
+  ```python
+  self.assertEqual(row_dict.get('nonexistent', 'default'), 'default')
   ```
 
 - [ ] tests/test_src_row_utils.py:79
@@ -433,6 +458,31 @@ Benefit: Automatic WAL mode, busy timeout, and consistent error handling
 - [ ] tests/test_buvette_inventaire.py:16
   ```python
   conn = sqlite3.connect(db_file)
+  ```
+
+- [ ] tests/test_buvette_audit.py:35
+  ```python
+  self.conn = sqlite3.connect(self.test_db)
+  ```
+
+- [ ] tests/test_buvette_audit.py:137
+  ```python
+  self.conn = sqlite3.connect(self.test_db)
+  ```
+
+- [ ] tests/test_buvette_audit.py:232
+  ```python
+  self.conn = sqlite3.connect(self.test_db)
+  ```
+
+- [ ] tests/test_buvette_audit.py:341
+  ```python
+  conn = sqlite3.connect(test_db)
+  ```
+
+- [ ] tests/test_buvette_audit.py:365
+  ```python
+  conn = sqlite3.connect(test_db)
   ```
 
 - [ ] tests/test_buvette_stock.py:22
