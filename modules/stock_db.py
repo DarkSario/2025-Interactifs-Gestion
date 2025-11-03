@@ -10,6 +10,8 @@ Ce module fournit:
   enregistre les deltas
 - revert_inventory_effect(inv_id): annule les effets d'un inventaire
 - inventory_stock_journal(inv_id): récupère l'historique des modifications
+- create_purchase_batch(): enregistre un lot d'achat avec prix unitaire
+- consume_purchase_batches_fifo(): consomme des lots en FIFO pour calculer le coût
 
 Toutes les opérations sont transactionnelles.
 """
@@ -23,8 +25,7 @@ logger = get_logger("stock_db")
 
 def ensure_stock_tables(conn=None):
     """
-    Crée la table inventory_stock_journal si elle n'existe pas.
-    Cette table enregistre les modifications de stock liées aux inventaires.
+    Crée les tables nécessaires pour le journal de stock et les lots d'achat.
     
     Args:
         conn: Optional database connection. If None, creates a new connection.
@@ -34,6 +35,7 @@ def ensure_stock_tables(conn=None):
         conn = get_connection()
     
     try:
+        # Create inventory stock journal table
         conn.execute("""
             CREATE TABLE IF NOT EXISTS inventory_stock_journal (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,9 +49,25 @@ def ensure_stock_tables(conn=None):
                 FOREIGN KEY (article_id) REFERENCES buvette_articles(id)
             )
         """)
+        
+        # Create article purchase batches table for FIFO costing
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS article_purchase_batches (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                article_id INTEGER NOT NULL,
+                quantity INTEGER NOT NULL,
+                remaining_quantity INTEGER NOT NULL,
+                unit_price REAL NOT NULL,
+                purchase_date TEXT DEFAULT CURRENT_TIMESTAMP,
+                achat_id INTEGER,
+                scope TEXT DEFAULT 'buvette',
+                FOREIGN KEY (article_id) REFERENCES buvette_articles(id)
+            )
+        """)
+        
         if not conn_provided:
             conn.commit()
-        logger.info("inventory_stock_journal table created/verified")
+        logger.info("Stock tables created/verified (inventory_stock_journal, article_purchase_batches)")
     except Exception as e:
         logger.error(f"Error ensuring stock tables: {e}")
         if not conn_provided and conn:
@@ -302,3 +320,136 @@ def inventory_stock_journal(conn, inv_id):
     except Exception as e:
         logger.error(f"Error getting stock journal for inventory {inv_id}: {e}")
         return []
+
+
+def create_purchase_batch(conn, article_id, quantity, unit_price, achat_id=None, scope='buvette'):
+    """
+    Enregistre un lot d'achat avec prix unitaire pour le calcul FIFO.
+    
+    Args:
+        conn: Database connection
+        article_id: ID de l'article
+        quantity: Quantité achetée
+        unit_price: Prix unitaire du lot
+        achat_id: ID de l'achat (optionnel, pour traçabilité)
+        scope: Portée du stock (default='buvette')
+    
+    Returns:
+        int: ID du lot créé
+    """
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO article_purchase_batches
+            (article_id, quantity, remaining_quantity, unit_price, achat_id, scope)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (article_id, quantity, quantity, unit_price, achat_id, scope))
+        
+        batch_id = cursor.lastrowid
+        logger.info(
+            f"Created purchase batch {batch_id} for article {article_id}: "
+            f"qty={quantity}, unit_price={unit_price}"
+        )
+        return batch_id
+    except Exception as e:
+        logger.error(
+            f"Error creating purchase batch for article {article_id}: {e}"
+        )
+        raise
+
+
+def consume_purchase_batches_fifo(conn, article_id, consume_quantity, scope='buvette'):
+    """
+    Consomme des lots d'achat en FIFO et calcule le coût total.
+    
+    Args:
+        conn: Database connection
+        article_id: ID de l'article
+        consume_quantity: Quantité à consommer
+        scope: Portée du stock (default='buvette')
+    
+    Returns:
+        dict: {
+            'total_cost': coût total de la consommation,
+            'consumed_batches': liste des lots consommés avec détails
+        }
+    """
+    try:
+        cursor = conn.cursor()
+        
+        # Get available batches in FIFO order (oldest first)
+        rows = cursor.execute("""
+            SELECT id, remaining_quantity, unit_price
+            FROM article_purchase_batches
+            WHERE article_id = ? AND scope = ? AND remaining_quantity > 0
+            ORDER BY purchase_date ASC, id ASC
+        """, (article_id, scope)).fetchall()
+        
+        total_cost = 0.0
+        consumed_batches = []
+        remaining_to_consume = consume_quantity
+        
+        for row in rows:
+            if remaining_to_consume <= 0:
+                break
+                
+            batch_id = row[0]
+            batch_remaining = row[1]
+            batch_unit_price = row[2]
+            
+            # Consume from this batch
+            consumed_from_batch = min(remaining_to_consume, batch_remaining)
+            cost_from_batch = consumed_from_batch * batch_unit_price
+            
+            # Update batch remaining quantity
+            new_remaining = batch_remaining - consumed_from_batch
+            cursor.execute("""
+                UPDATE article_purchase_batches
+                SET remaining_quantity = ?
+                WHERE id = ?
+            """, (new_remaining, batch_id))
+            
+            # Track this consumption
+            consumed_batches.append({
+                'batch_id': batch_id,
+                'consumed_quantity': consumed_from_batch,
+                'unit_price': batch_unit_price,
+                'cost': cost_from_batch
+            })
+            
+            total_cost += cost_from_batch
+            remaining_to_consume -= consumed_from_batch
+            
+            logger.debug(
+                f"Consumed {consumed_from_batch} from batch {batch_id} "
+                f"at unit_price={batch_unit_price}, cost={cost_from_batch}"
+            )
+        
+        if remaining_to_consume > 0:
+            logger.warning(
+                f"Could not fully consume {consume_quantity} units of article {article_id}. "
+                f"Missing {remaining_to_consume} units from purchase batches. "
+                f"Using average cost estimation for missing quantity."
+            )
+            # For missing quantity, use average of consumed batches or 0
+            if consumed_batches:
+                avg_price = total_cost / (consume_quantity - remaining_to_consume)
+                additional_cost = remaining_to_consume * avg_price
+                total_cost += additional_cost
+                logger.warning(f"Estimated cost for missing quantity: {additional_cost}")
+        
+        logger.info(
+            f"Consumed {consume_quantity} units of article {article_id} "
+            f"via FIFO: total_cost={total_cost:.2f}, "
+            f"batches_used={len(consumed_batches)}"
+        )
+        
+        return {
+            'total_cost': total_cost,
+            'consumed_batches': consumed_batches
+        }
+    except Exception as e:
+        logger.error(
+            f"Error consuming purchase batches for article {article_id}: {e}"
+        )
+        raise
