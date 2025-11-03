@@ -1,15 +1,15 @@
 # SQL Access Map
-Generated: 2025-11-03T17:45:52.845553
+Generated: 2025-11-03T18:27:54.070332
 This report maps all database access patterns in the codebase.
 
 ## Summary
-- sqlite3 imports: 41
+- sqlite3 imports: 42
 - get_connection() calls: 193
-- fetch patterns: 278
-- row.get() usage: 56
-- Positional indexing: 171
-- execute() calls: 654
-- sqlite3.connect() calls: 56
+- fetch patterns: 290
+- row.get() usage: 61
+- Positional indexing: 172
+- execute() calls: 680
+- sqlite3.connect() calls: 61
 
 ## SQLite3 Imports
 - `db/db.py:12`
@@ -32,6 +32,7 @@ This report maps all database access patterns in the codebase.
 - `tests/test_row_to_dict_conversion.py:9`
 - `tests/test_delete_inventaire.py:2`
 - `tests/test_buvette_inventaire.py:2`
+- `tests/test_buvette_audit.py:13`
 - `tests/test_buvette_stock.py:12`
 - `tests/test_stock_buvette_tab.py:11`
 - `tests/test_database_migration.py:7`
@@ -699,6 +700,20 @@ This report maps all database access patterns in the codebase.
 ### tests/test_articles_unite_migration.py
 - Line 235 `.fetchall()`: `columns = [row[1] for row in cursor.fetchall()]`
 
+### tests/test_buvette_audit.py
+- Line 74 `.fetchone()`: `row = self.conn.execute("SELECT * FROM test_articles WHERE id=1").fetchone()`
+- Line 119 `.fetchone()`: `row = self.conn.execute("SELECT * FROM test_articles WHERE id=1").fetchone()`
+- Line 202 `.fetchone()`: `row = self.conn.execute("SELECT stock FROM buvette_articles WHERE id=1").fetchone()`
+- Line 207 `.fetchone()`: `row = self.conn.execute("SELECT stock FROM buvette_articles WHERE id=1").fetchone()`
+- Line 220 `.fetchone()`: `row = self.conn.execute("SELECT * FROM buvette_mouvements WHERE article_id=1").fetchone()`
+- Line 282 `.fetchone()`: `""").fetchone()`
+- Line 294 `.fetchone()`: `""").fetchone()`
+- Line 310 `.fetchone()`: `row = self.conn.execute("SELECT * FROM buvette_mouvements WHERE article_id=2").fetchone()`
+- Line 326 `.fetchone()`: `row = self.conn.execute("SELECT * FROM buvette_mouvements WHERE id=1").fetchone()`
+- Line 92 `.fetchall()`: `rows = self.conn.execute("SELECT * FROM test_articles").fetchall()`
+- Line 190 `.fetchall()`: `columns = [row[1] for row in cursor.fetchall()]`
+- Line 347 `.fetchall()`: `rows = conn.execute("SELECT * FROM test").fetchall()`
+
 ### tests/test_buvette_inventaire.py
 - Line 100 `.fetchone()`: `inv = cur.fetchone()`
 - Line 121 `.fetchone()`: `inv = cur.fetchone()`
@@ -873,6 +888,13 @@ These MUST be fixed by converting rows to dicts first.
 - Line 9 (var: `row`): `This causes AttributeError when code tries to use row.get('column', default).`
 - Line 23 (var: `row_dict`): `>>> value = row_dict.get('optional_column', 'default')`
 - Line 47 (var: `row_dict`): `>>> value = row_dict.get('optional_column', 'default')`
+
+### tests/test_buvette_audit.py
+- Line 78 (var: `row`): `row.get('name')`
+- Line 85 (var: `row_dict`): `self.assertEqual(row_dict.get('name'), 'Test Article 1')`
+- Line 86 (var: `row_dict`): `self.assertEqual(row_dict.get('categorie'), 'Boissons')`
+- Line 87 (var: `row_dict`): `self.assertEqual(row_dict.get('stock'), 10)`
+- Line 88 (var: `row_dict`): `self.assertEqual(row_dict.get('nonexistent', 'default'), 'default')`
 
 ### tests/test_db_api_retry.py
 - Line 219 (var: `result`): `assert result.get('name') == 'test1'`
@@ -1085,6 +1107,9 @@ These use positional access and should continue to work.
 
 ### tests/test_articles_unite_migration.py
 - Line 235: `columns = [row[1] for row in cursor.fetchall()]`
+
+### tests/test_buvette_audit.py
+- Line 190: `columns = [row[1] for row in cursor.fetchall()]`
 
 ### tests/test_buvette_purchase_price.py
 - Line 56: `columns = [row[1] for row in cursor.fetchall()]`

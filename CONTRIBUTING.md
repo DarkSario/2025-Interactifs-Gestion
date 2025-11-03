@@ -63,17 +63,24 @@ conn.close()
 Rows returned by queries are `sqlite3.Row` objects. Convert them to dicts to use `.get()`:
 
 ```python
-from modules.db_row_utils import _row_to_dict, _rows_to_dicts
+# Preferred: Use src.db.row_utils (centralized utilities)
+from src.db.row_utils import row_to_dict, rows_to_dicts
 
 # Single row
 row = cursor.fetchone()
-row_dict = _row_to_dict(row)
+row_dict = row_to_dict(row)
 value = row_dict.get('column', default_value)
 
 # Multiple rows
 rows = cursor.fetchall()
-rows_dicts = _rows_to_dicts(rows)
+rows_dicts = rows_to_dicts(rows)
+
+# Alternative: modules.db_row_utils (legacy, for backward compatibility)
+from modules.db_row_utils import _row_to_dict, _rows_to_dicts
+# Or from utils.db_helpers import row_to_dict, rows_to_dicts
 ```
+
+**Why this matters:** `sqlite3.Row` objects do not have a `.get()` method. Using `.get()` on a Row will raise `AttributeError`. Always convert to dict first.
 
 ### 4. Use Service Classes for Domain Logic
 
@@ -146,3 +153,93 @@ Before submitting your PR, verify:
 - [ ] Connections closed properly
 - [ ] Documentation updated
 - [ ] Commit messages follow conventional commits format
+
+## Audit and Safety Scripts
+
+Before making database changes, run these scripts to identify potential issues:
+
+### 1. Database Usage Audit
+
+Scan the entire codebase for database access patterns:
+
+```bash
+python scripts/audit_db_usage.py
+```
+
+This generates:
+- `reports/SQL_ACCESS_MAP.md` - Maps all database access patterns
+- `reports/TODOs.md` - Lists action items for fixing issues
+
+### 2. Row.get() Pattern Detection
+
+Identify unsafe `.get()` usage on sqlite3.Row objects:
+
+```bash
+# Dry-run: Show potential issues
+python scripts/replace_row_get.py
+
+# Check specific file
+python scripts/replace_row_get.py --file modules/buvette_db.py
+
+# Apply fixes automatically (use with caution)
+python scripts/replace_row_get.py --apply
+```
+
+**⚠️ Important:** Always run in dry-run mode first and review the suggested changes before applying.
+
+### 3. Connection Standardization
+
+Find direct `sqlite3.connect()` calls that should use `get_connection()`:
+
+```bash
+# Dry-run: List files with direct connections
+python scripts/replace_sqlite_connect.py
+
+# Apply fixes to specific file
+python scripts/replace_sqlite_connect.py --file path/to/file.py --apply
+```
+
+### 4. Buvette Module Verification
+
+Run comprehensive checks on the buvette module:
+
+```bash
+python scripts/check_buvette.py
+```
+
+This verifies:
+- Database schema compliance
+- SQL query patterns
+- UI implementation
+- Test suite status
+
+### Safety Guidelines for Database Changes
+
+**Before making changes:**
+1. ✅ Backup the database: `cp db/association.db db/association.db.backup`
+2. ✅ Run audit scripts in dry-run mode
+3. ✅ Review generated reports in `reports/` directory
+4. ✅ Test changes on a copy of the database first
+5. ✅ Run all tests: `python -m pytest tests/`
+
+**When applying automated fixes:**
+1. ✅ Run scripts with dry-run first (without `--apply`)
+2. ✅ Review each suggested change carefully
+3. ✅ Apply changes selectively, not globally
+4. ✅ Test thoroughly after each change
+5. ✅ Commit changes in small, atomic commits
+
+**For structural migrations:**
+1. ❌ Do NOT drop or rename columns without thorough review
+2. ❌ Do NOT apply automated replacements to tests or scripts without verification
+3. ✅ Create candidate lists for manual review (see `reports/COLUMN_REMOVAL_CANDIDATES.md`)
+4. ✅ Use non-destructive migrations that add columns, not remove them
+5. ✅ Maintain backward compatibility with SELECT aliases
+
+### Reports Directory
+
+The `reports/` directory contains:
+- `SQL_ACCESS_MAP.md` - Complete map of database access patterns
+- `TODOs.md` - Prioritized action items for code improvements
+- `buvette_AUDIT.md` - Comprehensive audit of buvette module
+- `COLUMN_REMOVAL_CANDIDATES.md` - Columns that may need review (manual only)
