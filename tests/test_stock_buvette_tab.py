@@ -35,8 +35,9 @@ class TestStockBuvetteTab(unittest.TestCase):
     def setUp(self):
         """Set up a fresh test database before each test."""
         # Create temporary file that will be auto-cleaned
-        fd, self.test_db = tempfile.mkstemp(suffix='.db')
-        os.close(fd)
+        tmp_file = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        self.test_db = tmp_file.name
+        tmp_file.close()
 
         # Set environment variable for db.db module
         os.environ["APP_DB_PATH"] = self.test_db

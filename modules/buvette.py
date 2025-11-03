@@ -381,17 +381,18 @@ class BuvetteModule:
         self.stock_tree.column("contenance", width=100)
         self.stock_tree.column("commentaire", width=200)
         
-        self.stock_tree.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=3, pady=3)
-
-        # Add scrollbar
-        scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self.stock_tree.yview)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.stock_tree.configure(yscrollcommand=scrollbar.set)
-
-        # Button frame
+        # Button frame (pack first at bottom)
         btn_frame = tk.Frame(frame)
         btn_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=5, pady=5)
         tk.Button(btn_frame, text="Rafraîchir", command=self.refresh_stock).pack(side=tk.LEFT, padx=5)
+
+        # Add scrollbar (pack second on right side)
+        scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self.stock_tree.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.stock_tree.configure(yscrollcommand=scrollbar.set)
+        
+        # Pack treeview last to fill remaining space
+        self.stock_tree.pack(fill=tk.BOTH, expand=True, padx=3, pady=3)
         
         # Initial load
         self.refresh_stock()
@@ -423,7 +424,7 @@ class BuvetteModule:
                     )
                 )
         except Exception as e:
-            messagebox.showerror("Erreur", handle_exception(e, "Erreur lors de l'affichage du stock."))
+            messagebox.showerror("Erreur", handle_exception(e, "Erreur lors du rafraîchissement des données de stock."))
 
     # ------------------ TAB BILAN ------------------
     def create_tab_bilan(self):
