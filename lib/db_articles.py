@@ -73,12 +73,14 @@ def get_connection_with_timeout():
     """
     Get a short-lived database connection with proper timeout settings.
     
+    Uses the unified db.get_connection() to ensure WAL mode and busy_timeout.
+    Row factory is already set to sqlite3.Row by get_connection().
+    
     Returns:
         sqlite3.Connection: Database connection with Row factory
     """
-    db_path = get_db_file()
-    conn = sqlite3.connect(db_path, timeout=DEFAULT_TIMEOUT)
-    conn.row_factory = sqlite3.Row
+    from db.db import get_connection
+    conn = get_connection()
     return conn
 
 def column_exists(cursor, table, column):

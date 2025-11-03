@@ -100,7 +100,8 @@ CREATE TABLE IF NOT EXISTS stock (
 """
 
 def main():
-    conn = sqlite3.connect("association.db")
+    from db.db import get_connection
+    conn = get_connection()
     conn.executescript(SCHEMA)
     conn.commit()
     conn.close()
