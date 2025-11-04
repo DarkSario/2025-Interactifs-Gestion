@@ -1,0 +1,61 @@
+2025-11-04 05:41:57,377 | INFO | db | Database file set to: /tmp/tmp7a9qtdml.db
+2025-11-04 05:41:57,383 | INFO | db | Database file set to: /tmp/tmpsxw7tulf.db
+2025-11-04 05:41:57,388 | INFO | db | Database file set to: /tmp/tmp6ccxit4d.db
+2025-11-04 05:41:57,394 | INFO | db | Database file set to: /tmp/tmpkyyfxruu.db
+2025-11-04 05:41:57,399 | INFO | db | Database file set to: /tmp/tmp3ob29km5.db
+2025-11-04 05:41:57,405 | WARNING | db_api | Database locked on attempt 1/3. Retrying in 0.1s... Query: UPDATE test_table SET value = ? WHERE name = ?
+2025-11-04 05:41:57,506 | WARNING | db_api | Database locked on attempt 2/3. Retrying in 0.2s... Query: UPDATE test_table SET value = ? WHERE name = ?
+2025-11-04 05:41:57,709 | WARNING | db_api | Database locked on attempt 1/2. Retrying in 0.05s... Query: UPDATE test_table SET value = ?
+2025-11-04 05:41:57,760 | ERROR | db_api | Database error after 2 attempts: database is locked
+2025-11-04 05:41:57,760 | ERROR | db_api | Query: UPDATE test_table SET value = ?
+2025-11-04 05:41:57,760 | ERROR | db_api | Params: (300,)
+2025-11-04 05:41:57,762 | ERROR | db_api | Error executing query: UNIQUE constraint failed
+2025-11-04 05:41:57,763 | ERROR | db_api | Query: INSERT INTO test_table VALUES (1, 'dup')
+2025-11-04 05:41:57,763 | ERROR | db_api | Params: None
+2025-11-04 05:41:57,764 | INFO | db | Database file set to: /tmp/tmpkruumq_u.db
+2025-11-04 05:41:57,768 | INFO | db | Database file set to: /tmp/tmpjorm5xp1.db
+2025-11-04 05:41:57,772 | INFO | db | Database file set to: /tmp/tmp6rifcjb0.db
+2025-11-04 05:41:57,776 | INFO | db | Database file set to: /tmp/tmp2f4bs_g6.db
+2025-11-04 05:41:58,397 | INFO | buvette_inventaire_db | Inventory 1 affects 1 articles
+2025-11-04 05:41:58,397 | ERROR | stock_db | Error reverting inventory effects for inventory 1: no such table: inventory_stock_journal
+2025-11-04 05:41:58,397 | WARNING | buvette_inventaire_db | Could not revert stock effects for inventory 1: no such table: inventory_stock_journal
+2025-11-04 05:41:58,397 | INFO | buvette_inventaire_db | Deleting child rows in buvette_inventaire_lignes where inventaire_id = 1
+2025-11-04 05:41:58,398 | INFO | buvette_inventaire_db | Deleted inventaire id=1 and 1 child table deletions
+2025-11-04 05:41:58,398 | ERROR | stock_db | Error recomputing stock for article 1: no such table: buvette_mouvements
+2025-11-04 05:41:58,398 | ERROR | buvette_inventaire_db | Failed to recompute stock for article 1: no such table: buvette_mouvements
+2025-11-04 05:41:58,428 | INFO | inventory_lines_dialog | Loading inventory lines for inventaire_id=2
+2025-11-04 05:41:58,428 | INFO | inventory_lines_dialog | No lines found for inventaire_id=2
+2025-11-04 05:41:58,434 | INFO | inventory_lines_dialog | Loading inventory lines for inventaire_id=1
+2025-11-04 05:41:58,434 | ERROR | inventory_lines_dialog | Error loading inventory lines for inventaire_id=1: Database is locked
+Traceback (most recent call last):
+  File "/home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion/modules/inventory_lines_dialog.py", line 60, in load_inventory_lines
+    raw_rows = _list_lignes_inventaire(inventaire_id)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion/modules/buvette_inventaire_db.py", line 214, in list_lignes_inventaire
+    conn = get_conn()
+           ^^^^^^^^^^
+  File "/home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion/tests/test_inventory_lines_loader.py", line 205, in mock_get_conn_error
+    raise sqlite3.OperationalError("Database is locked")
+sqlite3.OperationalError: Database is locked
+2025-11-04 05:41:58,434 | INFO | inventory_lines_dialog | Error report written to: /home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion/reports/inventory_error_20251104_054158.txt
+2025-11-04 05:41:58,440 | INFO | inventory_lines_dialog | Loading inventory lines for inventaire_id=1
+2025-11-04 05:41:58,440 | INFO | inventory_lines_dialog | Successfully loaded 2 inventory lines
+2025-11-04 05:41:58,445 | INFO | inventory_lines_dialog | Error report written to: /home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion/reports/inventory_error_20251104_054158.txt
+2025-11-04 05:41:58,527 | INFO | db | Database file set to: /tmp/tmpc61w8lxp.db
+2025-11-04 05:41:58,567 | INFO | db | Database file set to: /tmp/tmptdrfk73l.db
+2025-11-04 05:41:58,588 | WARNING | stock_tab | Unsupported scope: invalid, returning empty list
+2025-11-04 05:41:58,610 | INFO | stock_db | Stock tables created/verified (inventory_stock_journal, article_purchase_batches)
+2025-11-04 05:41:58,612 | INFO | stock_db | Applied inventory snapshot for inventory 1 with 2 items
+2025-11-04 05:41:58,620 | INFO | stock_db | Stock tables created/verified (inventory_stock_journal, article_purchase_batches)
+2025-11-04 05:41:58,621 | INFO | stock_db | Created purchase batch 1 for article 1: qty=5, unit_price=2.0
+2025-11-04 05:41:58,621 | INFO | stock_db | Created purchase batch 2 for article 1: qty=10, unit_price=3.0
+2025-11-04 05:41:58,621 | INFO | stock_db | Created purchase batch 3 for article 1: qty=8, unit_price=2.5
+2025-11-04 05:41:58,622 | INFO | stock_db | Consumed 12 units of article 1 via FIFO: total_cost=31.00, batches_used=2
+2025-11-04 05:41:58,630 | INFO | stock_db | Stock tables created/verified (inventory_stock_journal, article_purchase_batches)
+2025-11-04 05:41:58,631 | INFO | stock_db | Created purchase batch 1 for article 1: qty=10, unit_price=2.5
+2025-11-04 05:41:58,641 | INFO | stock_db | Stock tables created/verified (inventory_stock_journal, article_purchase_batches)
+2025-11-04 05:41:58,655 | INFO | stock_db | Stock tables created/verified (inventory_stock_journal, article_purchase_batches)
+2025-11-04 05:41:58,656 | INFO | stock_db | Applied inventory snapshot for inventory 1 with 1 items
+2025-11-04 05:41:58,664 | INFO | stock_db | Stock tables created/verified (inventory_stock_journal, article_purchase_batches)
+2025-11-04 05:41:58,666 | INFO | stock_db | Applied inventory snapshot for inventory 1 with 2 items
+2025-11-04 05:41:58,666 | INFO | stock_db | Reverted inventory effects for inventory 1 (2 items)

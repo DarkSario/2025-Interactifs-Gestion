@@ -253,12 +253,34 @@ def update_ligne_inventaire(ligne_id, article_id, quantite, commentaire=None):
             conn.close()
 
 def delete_ligne_inventaire(ligne_id):
-    """Delete inventory line by ID."""
+    """
+    Delete inventory line by ID and recompute stock for the affected article.
+    
+    TODO (audit/fixes-buvette): Verify stock recalculation after line deletion.
+    See reports/TODOs.md for implementation review.
+    """
     conn = None
     try:
         conn = get_conn()
+        
+        # Get the article_id before deletion to recompute its stock
+        row = conn.execute(
+            "SELECT article_id FROM buvette_inventaire_lignes WHERE id=?", 
+            (ligne_id,)
+        ).fetchone()
+        article_id = row[0] if row else None
+        
+        # Delete the line
         conn.execute("DELETE FROM buvette_inventaire_lignes WHERE id=?", (ligne_id,))
         conn.commit()
+        
+        # Recompute stock for the affected article
+        if article_id:
+            try:
+                recompute_stock_for_article(conn, article_id)
+                logger.info(f"Recomputed stock for article {article_id} after line deletion")
+            except Exception as e:
+                logger.error(f"Failed to recompute stock for article {article_id}: {e}")
     finally:
         if conn:
             conn.close()

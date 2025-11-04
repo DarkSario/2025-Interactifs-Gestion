@@ -1,5 +1,5 @@
 # SQL Access Map
-Generated: 2025-11-03T19:58:08.920986
+Generated: 2025-11-04T05:34:57.970542
 This report maps all database access patterns in the codebase.
 
 ## Summary
@@ -442,27 +442,27 @@ This report maps all database access patterns in the codebase.
 ### modules/buvette_db.py
 - Line 111 `.fetchone()`: `row = conn.execute("SELECT * FROM buvette_articles WHERE id=?", (article_id,)).fetchone()`
 - Line 219 `.fetchone()`: `""", (achat_id,)).fetchone()`
-- Line 307 `.fetchone()`: `).fetchone()`
-- Line 364 `.fetchone()`: `""", (mvt_id,)).fetchone()`
-- Line 542 `.fetchone()`: `row = conn.execute("SELECT stock FROM buvette_articles WHERE id=?", (article_id,)).fetchone()`
+- Line 313 `.fetchone()`: `).fetchone()`
+- Line 370 `.fetchone()`: `""", (mvt_id,)).fetchone()`
+- Line 548 `.fetchone()`: `row = conn.execute("SELECT stock FROM buvette_articles WHERE id=?", (article_id,)).fetchone()`
 - Line 73 `.fetchall()`: `_schema_cache[cache_key] = [row[1] for row in cursor.fetchall()]`
 - Line 100 `.fetchall()`: `rows = conn.execute("SELECT * FROM buvette_articles ORDER BY name").fetchall()`
 - Line 203 `.fetchall()`: `""").fetchall()`
-- Line 343 `.fetchall()`: `""").fetchall()`
-- Line 421 `.fetchall()`: `""", (inventaire_id,)).fetchall()`
-- Line 472 `.fetchall()`: `rows = conn.execute("SELECT id, name, contenance FROM buvette_articles ORDER BY name").fetchall()`
-- Line 488 `.fetchall()`: `columns = [row["name"] for row in cursor.fetchall()]`
-- Line 539 `.fetchall()`: `columns = [row["name"] for row in cursor.fetchall()]`
+- Line 349 `.fetchall()`: `""").fetchall()`
+- Line 427 `.fetchall()`: `""", (inventaire_id,)).fetchall()`
+- Line 478 `.fetchall()`: `rows = conn.execute("SELECT id, name, contenance FROM buvette_articles ORDER BY name").fetchall()`
+- Line 494 `.fetchall()`: `columns = [row["name"] for row in cursor.fetchall()]`
+- Line 545 `.fetchall()`: `columns = [row["name"] for row in cursor.fetchall()]`
 
 ### modules/buvette_inventaire_db.py
 - Line 58 `.fetchone()`: `""", (inv_id,)).fetchone()`
-- Line 271 `.fetchone()`: `row = cur.fetchone()`
+- Line 275 `.fetchone()`: `row = cur.fetchone()`
 - Line 42 `.fetchall()`: `""").fetchall()`
 - Line 103 `.fetchall()`: `tables = [r[0] for r in cur.fetchall()]`
 - Line 108 `.fetchall()`: `fk_rows = conn.execute(f"PRAGMA foreign_key_list({t})").fetchall()`
-- Line 145 `.fetchall()`: `""", (inv_id,)).fetchall()`
-- Line 217 `.fetchall()`: `""", (inventaire_id,)).fetchall()`
-- Line 293 `.fetchall()`: `rows = conn.execute("SELECT id, name FROM events ORDER BY date DESC").fetchall()`
+- Line 149 `.fetchall()`: `""", (inv_id,)).fetchall()`
+- Line 221 `.fetchall()`: `""", (inventaire_id,)).fetchall()`
+- Line 297 `.fetchall()`: `rows = conn.execute("SELECT id, name FROM events ORDER BY date DESC").fetchall()`
 
 ### modules/buvette_inventaire_dialogs.py
 - Line 305 `.fetchall()`: `columns = [col[1] for col in cursor.fetchall()]`
@@ -626,7 +626,7 @@ This report maps all database access patterns in the codebase.
 - Line 269 `.fetchall()`: `""", (inventaire_id,)).fetchall()`
 - Line 318 `.fetchall()`: `""", (inv_id,)).fetchall()`
 - Line 386 `.fetchall()`: `""", (article_id, scope)).fetchall()`
-- Line 491 `.fetchall()`: `""", (article_id,)).fetchall()`
+- Line 494 `.fetchall()`: `""", (article_id,)).fetchall()`
 
 ### modules/stock_tab.py
 - Line 50 `.fetchall()`: `_schema_cache[cache_key] = [row[1] for row in cursor.fetchall()]`
@@ -738,12 +738,12 @@ This report maps all database access patterns in the codebase.
 - Line 66 `.fetchone()`: `row = self.conn.execute("SELECT * FROM buvette_articles WHERE name='Test Article 1'").fetchone()`
 - Line 87 `.fetchone()`: `row = self.conn.execute("SELECT * FROM buvette_articles WHERE name='Test Article 3'").fetchone()`
 - Line 165 `.fetchone()`: `row = self.conn.execute("SELECT * FROM buvette_articles LIMIT 1").fetchone()`
-- Line 216 `.fetchone()`: `).fetchone()`
-- Line 263 `.fetchone()`: `).fetchone()`
+- Line 219 `.fetchone()`: `).fetchone()`
+- Line 266 `.fetchone()`: `).fetchone()`
 - Line 106 `.fetchall()`: `""").fetchall()`
 - Line 130 `.fetchall()`: `rows = self.conn.execute("SELECT * FROM buvette_articles").fetchall()`
 - Line 150 `.fetchall()`: `rows = self.conn.execute("SELECT * FROM buvette_articles").fetchall()`
-- Line 235 `.fetchall()`: `""", (article_id,)).fetchall()`
+- Line 238 `.fetchall()`: `""", (article_id,)).fetchall()`
 
 ### tests/test_buvette_stock.py
 - Line 74 `.fetchone()`: `row = cursor.fetchone()`
@@ -1011,12 +1011,12 @@ These use positional access and should continue to work.
 
 ### modules/buvette_db.py
 - Line 73: `_schema_cache[cache_key] = [row[1] for row in cursor.fetchall()]`
-- Line 310: `article_id = row[0]`
-- Line 311: `quantite = row[1]`
+- Line 316: `article_id = row[0]`
+- Line 317: `quantite = row[1]`
 
 ### modules/buvette_inventaire_db.py
 - Line 103: `tables = [r[0] for r in cur.fetchall()]`
-- Line 146: `affected_article_ids = {row[0] for row in rows if row[0] is not None}`
+- Line 150: `affected_article_ids = {row[0] for row in rows if row[0] is not None}`
 
 ### modules/depots_retraits_banque.py
 - Line 158: `new_val = 0 if row[0] else 1`
@@ -1087,8 +1087,8 @@ These use positional access and should continue to work.
 - Line 396: `batch_id = row[0]`
 - Line 397: `batch_remaining = row[1]`
 - Line 398: `batch_unit_price = row[2]`
-- Line 496: `type_mouvement = row[0]`
-- Line 497: `quantite = row[1] if row[1] is not None else 0`
+- Line 499: `type_mouvement = row[0]`
+- Line 500: `quantite = row[1] if row[1] is not None else 0`
 
 ### modules/stock_tab.py
 - Line 50: `_schema_cache[cache_key] = [row[1] for row in cursor.fetchall()]`
@@ -1143,9 +1143,9 @@ These use positional access and should continue to work.
 - Line 164: `columns_after = [row[1] for row in cursor.fetchall()]`
 
 ### tests/test_buvette_repository.py
-- Line 239: `type_mouvement = row[0]`
-- Line 240: `quantite = row[1] if row[1] is not None else 0`
-- Line 264: `self.assertEqual(row[0], 12)`
+- Line 242: `type_mouvement = row[0]`
+- Line 243: `quantite = row[1] if row[1] is not None else 0`
+- Line 267: `self.assertEqual(row[0], 12)`
 
 ### tests/test_buvette_stock.py
 - Line 59: `columns = [row[1] for row in cursor.fetchall()]`
