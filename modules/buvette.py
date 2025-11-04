@@ -247,13 +247,16 @@ class BuvetteModule:
         tk.Button(btn_frame, text="Nouvel inventaire\ndétaillé", command=self.add_detailed_inventaire, bg="#4CAF50", fg="white").pack(fill=tk.X, pady=2)
 
     def refresh_inventaires(self):
+        # Guard against widget being destroyed (Tkinter TclError)
+        if not hasattr(self, 'inventaires_tree') or not getattr(self.inventaires_tree, 'winfo_exists', lambda: False)():
+            return
         try:
             for row in self.inventaires_tree.get_children():
                 self.inventaires_tree.delete(row)
             for inv in inv_db.list_inventaires():
                 self.inventaires_tree.insert("", "end", iid=inv["id"], values=(inv["date_inventaire"], inv["type_inventaire"], inv["commentaire"]))
-        except Exception as e:
-            messagebox.showerror("Erreur", handle_exception(e, "Erreur lors de l'affichage des inventaires."))
+        except Exception as e:  # catch tkinter.TclError or others if widget destroyed mid-iteration
+            return
 
     def add_inventaire(self):
         InventaireDialog(self.top, self.refresh_inventaires)
