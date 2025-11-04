@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import pandas as pd
 from db.db import get_connection
-from exports.exports import (
+from modules.exports import (
     export_dataframe_to_excel,
     export_dataframe_to_pdf,
     export_dataframe_to_csv
