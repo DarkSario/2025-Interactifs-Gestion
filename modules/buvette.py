@@ -285,7 +285,13 @@ class BuvetteModule:
             if messagebox.askyesno("Suppression", "Supprimer cet inventaire ?"):
                 try:
                     inv_db.delete_inventaire(sel)
-                    self.refresh_inventaires()
+                    # TODO (audit/fixes-buvette): Consider batch refresh or async mechanism
+                    # Current: Sequential refresh of three views (fast for typical datasets)
+                    # Future: Could implement unified refresh or make async for large datasets (>1000 items)
+                    # See reports/TODOs.md for UI refresh strategy review
+                    self.refresh_inventaires()  # Update inventory list
+                    self.refresh_articles()  # Refresh to show updated stock values
+                    self.refresh_stock()  # Refresh stock tab if visible
                 except Exception as e:
                     messagebox.showerror("Erreur", handle_exception(e, "Erreur lors de la suppression de l'inventaire."))
         else:
