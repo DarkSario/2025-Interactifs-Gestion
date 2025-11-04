@@ -1,14 +1,14 @@
 # SQL Access Map
-Generated: 2025-11-04T05:42:58.335877
+Generated: 2025-11-04T06:40:10.815948
 This report maps all database access patterns in the codebase.
 
 ## Summary
 - sqlite3 imports: 43
-- get_connection() calls: 193
-- fetch patterns: 302
+- get_connection() calls: 196
+- fetch patterns: 304
 - row.get() usage: 68
-- Positional indexing: 182
-- execute() calls: 700
+- Positional indexing: 216
+- execute() calls: 702
 - sqlite3.connect() calls: 62
 
 ## SQLite3 Imports
@@ -112,6 +112,13 @@ This report maps all database access patterns in the codebase.
 - Line 57: `conn = get_connection()`
 - Line 67: `conn = get_connection()`
 - Line 113: `conn = get_connection()`
+
+### exports/export_bilan_argumente.py
+- Line 63: `conn = get_connection()`
+- Line 374: `conn = get_connection()`
+
+### exports/exports.py
+- Line 243: `conn = get_connection()`
 
 ### init_db.py
 - Line 104: `conn = get_connection()`
@@ -262,11 +269,11 @@ This report maps all database access patterns in the codebase.
 - Line 231: `conn = get_connection()`
 
 ### modules/exports.py
-- Line 9: `conn = get_connection()`
-- Line 212: `conn = get_connection()`
-- Line 312: `conn = get_connection()`
-- Line 375: `conn = get_connection()`
-- Line 440: `conn = get_connection()`
+- Line 42: `conn = get_connection()`
+- Line 245: `conn = get_connection()`
+- Line 345: `conn = get_connection()`
+- Line 408: `conn = get_connection()`
+- Line 473: `conn = get_connection()`
 
 ### modules/fournisseurs.py
 - Line 36: `conn = get_connection()`
@@ -415,6 +422,10 @@ This report maps all database access patterns in the codebase.
 ### dialogs/edit_stock_dialog.py
 - Line 71 `.fetchone()`: `).fetchone()`
 
+### exports/exports.py
+- Line 267 `.fetchone()`: `total_recettes = conn.execute(recettes_query).fetchone()[0] or 0.0`
+- Line 268 `.fetchone()`: `total_depenses = conn.execute(depenses_query).fetchone()[0] or 0.0`
+
 ### lib/db_articles.py
 - Line 177 `.fetchone()`: `article = cursor.fetchone()`
 - Line 217 `.fetchone()`: `article = cursor.fetchone()`
@@ -456,14 +467,14 @@ This report maps all database access patterns in the codebase.
 
 ### modules/buvette_inventaire_db.py
 - Line 58 `.fetchone()`: `""", (inv_id,)).fetchone()`
-- Line 270 `.fetchone()`: `).fetchone()`
-- Line 297 `.fetchone()`: `row = cur.fetchone()`
+- Line 280 `.fetchone()`: `).fetchone()`
+- Line 315 `.fetchone()`: `row = cur.fetchone()`
 - Line 42 `.fetchall()`: `""").fetchall()`
 - Line 103 `.fetchall()`: `tables = [r[0] for r in cur.fetchall()]`
 - Line 108 `.fetchall()`: `fk_rows = conn.execute(f"PRAGMA foreign_key_list({t})").fetchall()`
 - Line 149 `.fetchall()`: `""", (inv_id,)).fetchall()`
 - Line 221 `.fetchall()`: `""", (inventaire_id,)).fetchall()`
-- Line 319 `.fetchall()`: `rows = conn.execute("SELECT id, name FROM events ORDER BY date DESC").fetchall()`
+- Line 337 `.fetchall()`: `rows = conn.execute("SELECT id, name FROM events ORDER BY date DESC").fetchall()`
 
 ### modules/buvette_inventaire_dialogs.py
 - Line 305 `.fetchall()`: `columns = [col[1] for col in cursor.fetchall()]`
@@ -575,11 +586,11 @@ This report maps all database access patterns in the codebase.
 - Line 82 `.fetchall()`: `events = conn.execute("SELECT * FROM events ORDER BY date DESC").fetchall()`
 
 ### modules/exports.py
-- Line 11 `.fetchone()`: `event = conn.execute("SELECT * FROM events WHERE id=?", (event_id,)).fetchone()`
-- Line 37 `.fetchone()`: `).fetchone()["total"] or 0.0`
-- Line 40 `.fetchone()`: `).fetchone()["total"] or 0.0`
-- Line 376 `.fetchall()`: `events = conn.execute("SELECT id, name FROM events ORDER BY date DESC").fetchall()`
-- Line 441 `.fetchall()`: `events = conn.execute("SELECT id, name, date FROM events ORDER BY date DESC").fetchall()`
+- Line 44 `.fetchone()`: `event = conn.execute("SELECT * FROM events WHERE id=?", (event_id,)).fetchone()`
+- Line 70 `.fetchone()`: `).fetchone()["total"] or 0.0`
+- Line 73 `.fetchone()`: `).fetchone()["total"] or 0.0`
+- Line 409 `.fetchall()`: `events = conn.execute("SELECT id, name FROM events ORDER BY date DESC").fetchall()`
+- Line 474 `.fetchall()`: `events = conn.execute("SELECT id, name, date FROM events ORDER BY date DESC").fetchall()`
 
 ### modules/fournisseurs.py
 - Line 99 `.fetchone()`: `old = conn.execute("SELECT name FROM fournisseurs WHERE id=?", (fid,)).fetchone()`
@@ -845,15 +856,15 @@ These MUST be fixed by converting rows to dicts first.
 - Line 131 (var: `row`): `name = row["name"] if "name" in row else row.get("evenement", "")`
 
 ### modules/buvette.py
-- Line 434 (var: `item`): `unite_display = item.get("unite_type", item.get("unite", ""))`
-- Line 434 (var: `item`): `unite_display = item.get("unite_type", item.get("unite", ""))`
-- Line 435 (var: `item`): `quantite_display = item.get("quantite", "")`
-- Line 439 (var: `item`): `iid=item.get("id", 0),`
-- Line 441 (var: `item`): `item.get("name", ""),`
-- Line 442 (var: `item`): `item.get("categorie", ""),`
-- Line 443 (var: `item`): `item.get("stock", 0),`
-- Line 446 (var: `item`): `item.get("contenance", ""),`
-- Line 447 (var: `item`): `item.get("commentaire", "")`
+- Line 436 (var: `item`): `unite_display = item.get("unite_type", item.get("unite", ""))`
+- Line 436 (var: `item`): `unite_display = item.get("unite_type", item.get("unite", ""))`
+- Line 437 (var: `item`): `quantite_display = item.get("quantite", "")`
+- Line 441 (var: `item`): `iid=item.get("id", 0),`
+- Line 443 (var: `item`): `item.get("name", ""),`
+- Line 444 (var: `item`): `item.get("categorie", ""),`
+- Line 445 (var: `item`): `item.get("stock", 0),`
+- Line 448 (var: `item`): `item.get("contenance", ""),`
+- Line 449 (var: `item`): `item.get("commentaire", "")`
 
 ### modules/buvette_bilan_db.py
 - Line 89 (var: `row_dict`): `if row_dict and row_dict.get("qte"):`
@@ -1007,6 +1018,42 @@ These use positional access and should continue to work.
 - Line 81: `self.commentaire_widget.insert("1.0", row[5] if row[5] else "")`
 - Line 82: `cat_id = row[6]`
 
+### exports/export_bilan_argumente.py
+- Line 452: `header_cells = table.rows[0].cells`
+- Line 458: `table.rows[1].cells[0].text = "Total Recettes"`
+- Line 459: `table.rows[1].cells[1].text = f"{total_recettes:.2f}"`
+- Line 460: `table.rows[1].cells[2].text = "100.00"`
+- Line 462: `table.rows[2].cells[0].text = "  - Recettes événements"`
+- Line 463: `table.rows[2].cells[1].text = f"{total_recettes_events:.2f}"`
+- Line 464: `table.rows[2].cells[2].text = f"{(total_recettes_events/total_recettes*100 if total_recettes > 0 else 0):.2f}"`
+- Line 466: `table.rows[3].cells[0].text = "  - Subventions/Dons"`
+- Line 467: `table.rows[3].cells[1].text = f"{total_recettes_subventions:.2f}"`
+- Line 468: `table.rows[3].cells[2].text = f"{(total_recettes_subventions/total_recettes*100 if total_recettes > 0 else 0):.2f}"`
+- Line 470: `table.rows[5].cells[0].text = "Total Dépenses"`
+- Line 471: `table.rows[5].cells[1].text = f"{total_depenses:.2f}"`
+- Line 472: `table.rows[5].cells[2].text = f"{(total_depenses/total_recettes*100 if total_recettes > 0 else 0):.2f}"`
+- Line 474: `table.rows[6].cells[0].text = "  - Dépenses événements"`
+- Line 475: `table.rows[6].cells[1].text = f"{total_depenses_events:.2f}"`
+- Line 476: `table.rows[6].cells[2].text = f"{(total_depenses_events/total_recettes*100 if total_recettes > 0 else 0):.2f}"`
+- Line 478: `table.rows[7].cells[0].text = "  - Dépenses régulières"`
+- Line 479: `table.rows[7].cells[1].text = f"{total_depenses_regulieres:.2f}"`
+- Line 480: `table.rows[7].cells[2].text = f"{(total_depenses_regulieres/total_recettes*100 if total_recettes > 0 else 0):.2f}"`
+- Line 482: `table.rows[8].cells[0].text = "  - Dépenses diverses"`
+- Line 483: `table.rows[8].cells[1].text = f"{total_depenses_diverses:.2f}"`
+- Line 484: `table.rows[8].cells[2].text = f"{(total_depenses_diverses/total_recettes*100 if total_recettes > 0 else 0):.2f}"`
+- Line 486: `table.rows[10].cells[0].text = "SOLDE"`
+- Line 487: `table.rows[10].cells[1].text = f"{solde:.2f}"`
+- Line 488: `table.rows[10].cells[2].text = f"{(solde/total_recettes*100 if total_recettes > 0 else 0):.2f}"`
+- Line 491: `for cell in table.rows[10].cells:`
+- Line 515: `hdr_cells = recettes_table.rows[0].cells`
+- Line 523: `row_cells[0].text = str(row['source'])`
+- Line 524: `row_cells[1].text = str(int(row['count']))`
+- Line 525: `row_cells[2].text = f"{row['total']:.2f}"`
+- Line 544: `hdr_cells = depenses_table.rows[0].cells`
+- Line 552: `row_cells[0].text = str(row['categorie'])`
+- Line 553: `row_cells[1].text = str(int(row['count']))`
+- Line 554: `row_cells[2].text = f"{row['total']:.2f}"`
+
 ### lib/db_articles.py
 - Line 103: `columns = [row[1] for row in cursor.fetchall()]`
 
@@ -1018,7 +1065,7 @@ These use positional access and should continue to work.
 ### modules/buvette_inventaire_db.py
 - Line 103: `tables = [r[0] for r in cur.fetchall()]`
 - Line 150: `affected_article_ids = {row[0] for row in rows if row[0] is not None}`
-- Line 271: `article_id = row[0] if row else None`
+- Line 286: `article_id = row[0]`
 
 ### modules/depots_retraits_banque.py
 - Line 158: `new_val = 0 if row[0] else 1`
@@ -1034,30 +1081,30 @@ These use positional access and should continue to work.
 - Line 60: `item["type_champ"] if isinstance(item, dict) else item[2],`
 
 ### modules/exports.py
-- Line 121: `Paragraph(str(row[0]), styles["Normal"]),`
-- Line 122: `Paragraph(str(row[1]), styles["Normal"]),`
-- Line 123: `Paragraph(str(row[2]), styles["Normal"]),`
-- Line 124: `Paragraph(str(row[3]), styles["Normal"])`
-- Line 150: `Paragraph(str(row[0]), styles["Normal"]),  # categorie`
-- Line 151: `Paragraph(str(row[1]), styles["Normal"]),  # montant`
-- Line 152: `Paragraph(str(row[2]), styles["Normal"]),  # fournisseur`
-- Line 153: `Paragraph(str(row[3]), styles["Normal"]),  # date_depense`
-- Line 154: `Paragraph(str(row[4]), styles["Normal"]),  # paye_par`
-- Line 155: `Paragraph(str(row[5]), styles["Normal"]),  # membre_id`
-- Line 156: `Paragraph(str(row[6]), styles["Normal"])   # commentaire`
-- Line 181: `Paragraph(str(row[0]), styles["Normal"]),`
-- Line 182: `Paragraph(str(row[1]), styles["Normal"]),`
-- Line 183: `Paragraph(str(row[2]), styles["Normal"]),`
-- Line 184: `Paragraph(str(row[3]), styles["Normal"]),`
-- Line 185: `Paragraph(str(row[4]), styles["Normal"])`
-- Line 271: `Paragraph(str(row[0]), styles["Normal"]), # date`
-- Line 272: `Paragraph(str(row[1]), styles["Normal"]), # categorie`
-- Line 273: `Paragraph(str(row[2]), styles["Normal"]), # montant`
-- Line 274: `Paragraph(str(row[3]), styles["Normal"]), # fournisseur`
-- Line 275: `Paragraph(str(row[4]), styles["Normal"]), # paye_par`
-- Line 276: `Paragraph(str(row[5]), styles["Normal"]), # membre_id`
-- Line 277: `Paragraph(str(row[6]), styles["Normal"]), # commentaire`
-- Line 278: `Paragraph(str(row[7]), styles["Normal"])  # type_depense`
+- Line 154: `Paragraph(str(row[0]), styles["Normal"]),`
+- Line 155: `Paragraph(str(row[1]), styles["Normal"]),`
+- Line 156: `Paragraph(str(row[2]), styles["Normal"]),`
+- Line 157: `Paragraph(str(row[3]), styles["Normal"])`
+- Line 183: `Paragraph(str(row[0]), styles["Normal"]),  # categorie`
+- Line 184: `Paragraph(str(row[1]), styles["Normal"]),  # montant`
+- Line 185: `Paragraph(str(row[2]), styles["Normal"]),  # fournisseur`
+- Line 186: `Paragraph(str(row[3]), styles["Normal"]),  # date_depense`
+- Line 187: `Paragraph(str(row[4]), styles["Normal"]),  # paye_par`
+- Line 188: `Paragraph(str(row[5]), styles["Normal"]),  # membre_id`
+- Line 189: `Paragraph(str(row[6]), styles["Normal"])   # commentaire`
+- Line 214: `Paragraph(str(row[0]), styles["Normal"]),`
+- Line 215: `Paragraph(str(row[1]), styles["Normal"]),`
+- Line 216: `Paragraph(str(row[2]), styles["Normal"]),`
+- Line 217: `Paragraph(str(row[3]), styles["Normal"]),`
+- Line 218: `Paragraph(str(row[4]), styles["Normal"])`
+- Line 304: `Paragraph(str(row[0]), styles["Normal"]), # date`
+- Line 305: `Paragraph(str(row[1]), styles["Normal"]), # categorie`
+- Line 306: `Paragraph(str(row[2]), styles["Normal"]), # montant`
+- Line 307: `Paragraph(str(row[3]), styles["Normal"]), # fournisseur`
+- Line 308: `Paragraph(str(row[4]), styles["Normal"]), # paye_par`
+- Line 309: `Paragraph(str(row[5]), styles["Normal"]), # membre_id`
+- Line 310: `Paragraph(str(row[6]), styles["Normal"]), # commentaire`
+- Line 311: `Paragraph(str(row[7]), styles["Normal"])  # type_depense`
 
 ### modules/inventory_lines_dialog.py
 - Line 128: `f"Row type: {type(raw_rows[0]).__name__ if raw_rows else 'N/A'}",`
