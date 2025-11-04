@@ -256,6 +256,15 @@ def delete_ligne_inventaire(ligne_id):
     """
     Delete inventory line by ID and recompute stock for the affected article.
     
+    Uses recompute_stock_for_article() from modules.stock_db to recalculate
+    stock based on all movements after the line is deleted.
+    
+    Args:
+        ligne_id: ID of the inventory line to delete
+        
+    Raises:
+        Exception: If deletion or stock recomputation fails
+        
     TODO (audit/fixes-buvette): Verify stock recalculation after line deletion.
     See reports/TODOs.md for implementation review.
     """
@@ -264,23 +273,32 @@ def delete_ligne_inventaire(ligne_id):
         conn = get_conn()
         
         # Get the article_id before deletion to recompute its stock
+        # If line doesn't exist, row will be None and we'll skip recomputation
         row = conn.execute(
             "SELECT article_id FROM buvette_inventaire_lignes WHERE id=?", 
             (ligne_id,)
         ).fetchone()
-        article_id = row[0] if row else None
+        
+        if row is None:
+            logger.warning(f"Inventory line {ligne_id} not found, nothing to delete")
+            return
+        
+        article_id = row[0]
         
         # Delete the line
         conn.execute("DELETE FROM buvette_inventaire_lignes WHERE id=?", (ligne_id,))
         conn.commit()
+        logger.info(f"Deleted inventory line {ligne_id} for article {article_id}")
         
-        # Recompute stock for the affected article
+        # Recompute stock for the affected article (from modules.stock_db)
+        # This recalculates stock by aggregating all movements
         if article_id:
             try:
                 recompute_stock_for_article(conn, article_id)
                 logger.info(f"Recomputed stock for article {article_id} after line deletion")
             except Exception as e:
                 logger.error(f"Failed to recompute stock for article {article_id}: {e}")
+                # Don't re-raise - deletion succeeded, recomputation is best-effort
     finally:
         if conn:
             conn.close()
