@@ -81,6 +81,9 @@ class BuvetteModule:
         tk.Button(btn_frame, text="Supprimer", command=self.del_article).pack(fill=tk.X, pady=2)
 
     def refresh_articles(self):
+        # Guard against widget being destroyed (Tkinter TclError)
+        if not hasattr(self, 'articles_tree') or not getattr(self.articles_tree, 'winfo_exists', lambda: False)():
+            return
         try:
             for row in self.articles_tree.get_children():
                 self.articles_tree.delete(row)
@@ -110,6 +113,9 @@ class BuvetteModule:
                         a.get("commentaire", "")
                     )
                 )
+        except tk.TclError:
+            # Widget destroyed during refresh, silently return
+            return
         except Exception as e:
             logger.exception("Error refreshing articles list")
             # Write diagnostic report for debugging
@@ -179,6 +185,9 @@ class BuvetteModule:
         tk.Button(btn_frame, text="Supprimer", command=self.del_achat).pack(fill=tk.X, pady=2)
 
     def refresh_achats(self):
+        # Guard against widget being destroyed (Tkinter TclError)
+        if not hasattr(self, 'achats_tree') or not getattr(self.achats_tree, 'winfo_exists', lambda: False)():
+            return
         try:
             for row in self.achats_tree.get_children():
                 self.achats_tree.delete(row)
@@ -196,6 +205,9 @@ class BuvetteModule:
                         ach["exercice"]
                     )
                 )
+        except tk.TclError:
+            # Widget destroyed during refresh, silently return
+            return
         except Exception as e:
             messagebox.showerror("Erreur", handle_exception(e, "Erreur lors de l'affichage des achats."))
 
@@ -340,6 +352,9 @@ class BuvetteModule:
         tk.Button(btn_frame, text="Supprimer", command=self.del_mouvement).pack(fill=tk.X, pady=2)
 
     def refresh_mouvements(self):
+        # Guard against widget being destroyed (Tkinter TclError)
+        if not hasattr(self, 'mouvements_tree') or not getattr(self.mouvements_tree, 'winfo_exists', lambda: False)():
+            return
         try:
             for row in self.mouvements_tree.get_children():
                 self.mouvements_tree.delete(row)
@@ -348,6 +363,9 @@ class BuvetteModule:
                     "", "end", iid=mvt["id"],
                     values=(mvt["date"], mvt["article_name"], mvt["article_contenance"] if "article_contenance" in mvt.keys() and mvt["article_contenance"] is not None else "", mvt["type"], mvt["quantite"], mvt["commentaire"])
                 )
+        except tk.TclError:
+            # Widget destroyed during refresh, silently return
+            return
         except Exception as e:
             messagebox.showerror("Erreur", handle_exception(e, "Erreur lors de l'affichage des mouvements."))
 
@@ -423,6 +441,9 @@ class BuvetteModule:
 
     def refresh_stock(self):
         """Refresh stock display using stock_tab.get_stock_listing()."""
+        # Guard against widget being destroyed (Tkinter TclError)
+        if not hasattr(self, 'stock_tree') or not getattr(self.stock_tree, 'winfo_exists', lambda: False)():
+            return
         try:
             from modules.stock_tab import get_stock_listing
             
@@ -452,6 +473,9 @@ class BuvetteModule:
                         item.get("commentaire", "")
                     )
                 )
+        except tk.TclError:
+            # Widget destroyed during refresh, silently return
+            return
         except Exception as e:
             messagebox.showerror("Erreur", handle_exception(e, "Erreur lors du rafraîchissement des données de stock."))
 
@@ -466,6 +490,9 @@ class BuvetteModule:
         self.refresh_bilan()
 
     def refresh_bilan(self):
+        # Guard against widget being destroyed (Tkinter TclError)
+        if not hasattr(self, 'bilan_text') or not getattr(self.bilan_text, 'winfo_exists', lambda: False)():
+            return
         try:
             # Protection contre None pour les agrégations
             achats = sum(int(a["quantite"] or 0) for a in list_achats())
@@ -478,6 +505,9 @@ class BuvetteModule:
             txt += f"Total inventaire (toutes lignes) : {invs}\n"
             self.bilan_text.delete(1.0, tk.END)
             self.bilan_text.insert(tk.END, txt)
+        except tk.TclError:
+            # Widget destroyed during refresh, silently return
+            return
         except Exception as e:
             messagebox.showerror("Erreur", handle_exception(e, "Erreur lors du calcul du bilan."))
 
@@ -715,6 +745,9 @@ class LignesInventaireDialog(tk.Toplevel):
         tk.Button(btn_frame, text="Fermer", command=self.destroy).pack(side=tk.RIGHT, padx=6)
 
     def refresh_lignes(self):
+        # Guard against widget being destroyed (Tkinter TclError)
+        if not hasattr(self, 'lignes_tree') or not getattr(self.lignes_tree, 'winfo_exists', lambda: False)():
+            return
         try:
             for row in self.lignes_tree.get_children():
                 self.lignes_tree.delete(row)
@@ -725,6 +758,9 @@ class LignesInventaireDialog(tk.Toplevel):
                 # ID should always be present from DB, but use str() for safety
                 line_id = str(l.get("id", 0))
                 self.lignes_tree.insert("", "end", iid=line_id, values=(article_display, l.get("quantite", 0), l.get("commentaire", "")))
+        except tk.TclError:
+            # Widget destroyed during refresh, silently return
+            return
         except Exception as e:
             logger.exception("Error refreshing inventory lines")
             # Write diagnostic report for debugging
