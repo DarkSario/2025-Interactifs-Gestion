@@ -38,7 +38,7 @@ Il sert de référence pour les migrations et la maintenance du schéma de base 
 - **historique_clotures**: 5 colonnes, référencée dans 1 fichier(s)
 - **inventaire_lignes**: 8 colonnes, référencée dans 2 fichier(s)
 - **inventaires**: 6 colonnes, référencée dans 1 fichier(s)
-- **inventory_stock_journal**: 64 colonnes, référencée dans 1 fichier(s)
+- **inventory_stock_journal**: 65 colonnes, référencée dans 1 fichier(s)
 - **membres**: 22 colonnes, référencée dans 3 fichier(s)
 - **mouvements_stock**: 16 colonnes, référencée dans 1 fichier(s)
 - **orders**: 1 colonnes, référencée dans 1 fichier(s)
@@ -1122,6 +1122,7 @@ Il sert de référence pour les migrations et la maintenance du schéma de base 
 
 - `"` (type inféré: TEXT)
 - `"quantite":` (type inféré: TEXT)
+- `'achat'` (type inféré: TEXT)
 - `'achat'):` (type inféré: TEXT)
 - `'buvette')` (type inféré: TEXT)
 - `'consumed_batches':` (type inféré: TEXT)

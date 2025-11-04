@@ -1,5 +1,5 @@
 # Database Access TODOs
-Generated: 2025-11-04T05:34:57.971331
+Generated: 2025-11-04T05:42:58.336708
 
 This report lists action items for fixing database access issues.
 
@@ -299,47 +299,47 @@ Solution: Use `_row_to_dict(row)` or `_rows_to_dicts(rows)` from modules/db_row_
   return row_dict.get("recette", 0.0) if row_dict else 0.0
   ```
 
-- [ ] modules/buvette.py:430
+- [ ] modules/buvette.py:434
   ```python
   unite_display = item.get("unite_type", item.get("unite", ""))
   ```
 
-- [ ] modules/buvette.py:430
+- [ ] modules/buvette.py:434
   ```python
   unite_display = item.get("unite_type", item.get("unite", ""))
-  ```
-
-- [ ] modules/buvette.py:431
-  ```python
-  quantite_display = item.get("quantite", "")
   ```
 
 - [ ] modules/buvette.py:435
   ```python
-  iid=item.get("id", 0),
-  ```
-
-- [ ] modules/buvette.py:437
-  ```python
-  item.get("name", ""),
-  ```
-
-- [ ] modules/buvette.py:438
-  ```python
-  item.get("categorie", ""),
+  quantite_display = item.get("quantite", "")
   ```
 
 - [ ] modules/buvette.py:439
   ```python
-  item.get("stock", 0),
+  iid=item.get("id", 0),
+  ```
+
+- [ ] modules/buvette.py:441
+  ```python
+  item.get("name", ""),
   ```
 
 - [ ] modules/buvette.py:442
   ```python
-  item.get("contenance", ""),
+  item.get("categorie", ""),
   ```
 
 - [ ] modules/buvette.py:443
+  ```python
+  item.get("stock", 0),
+  ```
+
+- [ ] modules/buvette.py:446
+  ```python
+  item.get("contenance", ""),
+  ```
+
+- [ ] modules/buvette.py:447
   ```python
   item.get("commentaire", "")
   ```

@@ -2090,6 +2090,9 @@ tables:
       '"quantite":':
         inferred: true
         type: TEXT
+      '''achat''':
+        inferred: true
+        type: TEXT
       '''achat''):':
         inferred: true
         type: TEXT

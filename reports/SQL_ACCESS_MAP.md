@@ -1,14 +1,14 @@
 # SQL Access Map
-Generated: 2025-11-04T05:34:57.970542
+Generated: 2025-11-04T05:42:58.335877
 This report maps all database access patterns in the codebase.
 
 ## Summary
 - sqlite3 imports: 43
 - get_connection() calls: 193
-- fetch patterns: 301
+- fetch patterns: 302
 - row.get() usage: 68
-- Positional indexing: 181
-- execute() calls: 699
+- Positional indexing: 182
+- execute() calls: 700
 - sqlite3.connect() calls: 62
 
 ## SQLite3 Imports
@@ -456,13 +456,14 @@ This report maps all database access patterns in the codebase.
 
 ### modules/buvette_inventaire_db.py
 - Line 58 `.fetchone()`: `""", (inv_id,)).fetchone()`
-- Line 275 `.fetchone()`: `row = cur.fetchone()`
+- Line 270 `.fetchone()`: `).fetchone()`
+- Line 297 `.fetchone()`: `row = cur.fetchone()`
 - Line 42 `.fetchall()`: `""").fetchall()`
 - Line 103 `.fetchall()`: `tables = [r[0] for r in cur.fetchall()]`
 - Line 108 `.fetchall()`: `fk_rows = conn.execute(f"PRAGMA foreign_key_list({t})").fetchall()`
 - Line 149 `.fetchall()`: `""", (inv_id,)).fetchall()`
 - Line 221 `.fetchall()`: `""", (inventaire_id,)).fetchall()`
-- Line 297 `.fetchall()`: `rows = conn.execute("SELECT id, name FROM events ORDER BY date DESC").fetchall()`
+- Line 319 `.fetchall()`: `rows = conn.execute("SELECT id, name FROM events ORDER BY date DESC").fetchall()`
 
 ### modules/buvette_inventaire_dialogs.py
 - Line 305 `.fetchall()`: `columns = [col[1] for col in cursor.fetchall()]`
@@ -844,15 +845,15 @@ These MUST be fixed by converting rows to dicts first.
 - Line 131 (var: `row`): `name = row["name"] if "name" in row else row.get("evenement", "")`
 
 ### modules/buvette.py
-- Line 430 (var: `item`): `unite_display = item.get("unite_type", item.get("unite", ""))`
-- Line 430 (var: `item`): `unite_display = item.get("unite_type", item.get("unite", ""))`
-- Line 431 (var: `item`): `quantite_display = item.get("quantite", "")`
-- Line 435 (var: `item`): `iid=item.get("id", 0),`
-- Line 437 (var: `item`): `item.get("name", ""),`
-- Line 438 (var: `item`): `item.get("categorie", ""),`
-- Line 439 (var: `item`): `item.get("stock", 0),`
-- Line 442 (var: `item`): `item.get("contenance", ""),`
-- Line 443 (var: `item`): `item.get("commentaire", "")`
+- Line 434 (var: `item`): `unite_display = item.get("unite_type", item.get("unite", ""))`
+- Line 434 (var: `item`): `unite_display = item.get("unite_type", item.get("unite", ""))`
+- Line 435 (var: `item`): `quantite_display = item.get("quantite", "")`
+- Line 439 (var: `item`): `iid=item.get("id", 0),`
+- Line 441 (var: `item`): `item.get("name", ""),`
+- Line 442 (var: `item`): `item.get("categorie", ""),`
+- Line 443 (var: `item`): `item.get("stock", 0),`
+- Line 446 (var: `item`): `item.get("contenance", ""),`
+- Line 447 (var: `item`): `item.get("commentaire", "")`
 
 ### modules/buvette_bilan_db.py
 - Line 89 (var: `row_dict`): `if row_dict and row_dict.get("qte"):`
@@ -1017,6 +1018,7 @@ These use positional access and should continue to work.
 ### modules/buvette_inventaire_db.py
 - Line 103: `tables = [r[0] for r in cur.fetchall()]`
 - Line 150: `affected_article_ids = {row[0] for row in rows if row[0] is not None}`
+- Line 271: `article_id = row[0] if row else None`
 
 ### modules/depots_retraits_banque.py
 - Line 158: `new_val = 0 if row[0] else 1`
