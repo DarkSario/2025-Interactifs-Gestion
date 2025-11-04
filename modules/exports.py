@@ -3,6 +3,39 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from db.db import get_connection
 
+# ========== SHIM LAYER: Re-export from exports package ==========
+# This shim layer provides compatibility by re-exporting functions from the
+# exports.exports package. If imports fail, fallback implementations are provided
+# below in the compatibility wrappers section.
+try:
+    from exports.exports import (
+        export_dataframe_to_excel as _export_df_excel,
+        export_dataframe_to_csv as _export_df_csv,
+        export_dataframe_to_pdf as _export_df_pdf,
+        export_bilan_reporte_pdf as _export_bilan_reporte,
+    )
+    # Successfully imported from exports package
+    _EXPORTS_PACKAGE_AVAILABLE = True
+except ImportError as e:
+    # exports package not available, will use fallback implementations
+    _EXPORTS_PACKAGE_AVAILABLE = False
+    _export_df_excel = None
+    _export_df_csv = None
+    _export_df_pdf = None
+    _export_bilan_reporte = None
+
+try:
+    from exports.export_bilan_argumente import (
+        export_bilan_argumente_pdf as _export_bilan_argumente_pdf,
+        export_bilan_argumente_word as _export_bilan_argumente_word,
+    )
+    _BILAN_ARGUMENTE_AVAILABLE = True
+except ImportError:
+    _BILAN_ARGUMENTE_AVAILABLE = False
+    _export_bilan_argumente_pdf = None
+    _export_bilan_argumente_word = None
+# ========== END SHIM LAYER ==========
+
 # ========== EXPORTS BILAN EVENEMENT ==========
 
 def export_bilan_evenement(event_id, format="xlsx", filename=None):
@@ -456,7 +489,7 @@ class ExportsWindow(tk.Toplevel):
 # These functions ensure that callers expecting:
 #   export_dataframe_to_excel, export_dataframe_to_csv, export_dataframe_to_pdf
 # can import them from modules.exports even if the file previously provided different helpers.
-# They use pandas for Excel/CSV and reportlab for PDF (if available).
+# If exports package is available, use those functions; otherwise use fallback implementations.
 import pandas as _pd
 
 def _ensure_df(df):
@@ -468,18 +501,25 @@ def _ensure_df(df):
         return _pd.DataFrame(df)
     return df
 
-if "export_dataframe_to_excel" not in globals():
+# Use exports package functions if available, otherwise provide fallback
+if _EXPORTS_PACKAGE_AVAILABLE and _export_df_excel is not None:
+    export_dataframe_to_excel = _export_df_excel
+elif "export_dataframe_to_excel" not in globals():
     def export_dataframe_to_excel(df, file_path, sheet_name="Sheet1", index=False, **kwargs):
         df = _ensure_df(df)
         with _pd.ExcelWriter(file_path) as writer:
             df.to_excel(writer, sheet_name=sheet_name, index=index, **kwargs)
 
-if "export_dataframe_to_csv" not in globals():
+if _EXPORTS_PACKAGE_AVAILABLE and _export_df_csv is not None:
+    export_dataframe_to_csv = _export_df_csv
+elif "export_dataframe_to_csv" not in globals():
     def export_dataframe_to_csv(df, file_path, index=False, **kwargs):
         df = _ensure_df(df)
         df.to_csv(file_path, index=index, **kwargs)
 
-if "export_dataframe_to_pdf" not in globals():
+if _EXPORTS_PACKAGE_AVAILABLE and _export_df_pdf is not None:
+    export_dataframe_to_pdf = _export_df_pdf
+elif "export_dataframe_to_pdf" not in globals():
     def export_dataframe_to_pdf(df, file_path, title=None, **kwargs):
         df = _ensure_df(df)
         try:
@@ -513,4 +553,33 @@ if "export_dataframe_to_pdf" not in globals():
         ]))
         elements.append(table)
         doc.build(elements)
+
+# Export bilan functions from exports package if available
+if _EXPORTS_PACKAGE_AVAILABLE and _export_bilan_reporte is not None:
+    export_bilan_reporte_pdf = _export_bilan_reporte
+else:
+    # Provide a stub that alerts the user
+    def export_bilan_reporte_pdf(file_path=None):
+        messagebox.showerror(
+            "Feature Unavailable",
+            "The export_bilan_reporte_pdf function requires the exports package to be installed."
+        )
+
+if _BILAN_ARGUMENTE_AVAILABLE and _export_bilan_argumente_pdf is not None:
+    export_bilan_argumente_pdf = _export_bilan_argumente_pdf
+else:
+    def export_bilan_argumente_pdf():
+        messagebox.showerror(
+            "Feature Unavailable",
+            "The export_bilan_argumente_pdf function requires the exports.export_bilan_argumente module."
+        )
+
+if _BILAN_ARGUMENTE_AVAILABLE and _export_bilan_argumente_word is not None:
+    export_bilan_argumente_word = _export_bilan_argumente_word
+else:
+    def export_bilan_argumente_word():
+        messagebox.showerror(
+            "Feature Unavailable",
+            "The export_bilan_argumente_word function requires the exports.export_bilan_argumente module."
+        )
 # --- end compatibility wrappers ---
