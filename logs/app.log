@@ -60,3 +60,28 @@ sqlite3.OperationalError: Database is locked
 2025-11-04 05:41:58,666 | INFO | stock_db | Applied inventory snapshot for inventory 1 with 2 items
 2025-11-04 05:41:58,666 | INFO | stock_db | Reverted inventory effects for inventory 1 (2 items)
 2025-11-04 07:52:33,527 | INFO | db | Tables créées/mises à jour.
+2025-11-04 08:32:55,091 | INFO | db | Database file set to: /tmp/tmpthpbfs1a.db
+2025-11-04 08:32:55,098 | INFO | db | Database file set to: /tmp/tmpvq4cw50o.db
+2025-11-04 08:32:55,104 | INFO | db | Database file set to: /tmp/tmp72xampa4.db
+2025-11-04 08:32:55,110 | INFO | db | Database file set to: /tmp/tmpmriipjjr.db
+2025-11-04 08:32:55,115 | INFO | db | Database file set to: /tmp/tmphf6pfkju.db
+2025-11-04 08:32:55,121 | WARNING | db_api | Database locked on attempt 1/3. Retrying in 0.1s... Query: UPDATE test_table SET value = ? WHERE name = ?
+2025-11-04 08:32:55,223 | WARNING | db_api | Database locked on attempt 2/3. Retrying in 0.2s... Query: UPDATE test_table SET value = ? WHERE name = ?
+2025-11-04 08:32:55,427 | WARNING | db_api | Database locked on attempt 1/2. Retrying in 0.05s... Query: UPDATE test_table SET value = ?
+2025-11-04 08:32:55,478 | ERROR | db_api | Database error after 2 attempts: database is locked
+2025-11-04 08:32:55,478 | ERROR | db_api | Query: UPDATE test_table SET value = ?
+2025-11-04 08:32:55,478 | ERROR | db_api | Params: (300,)
+2025-11-04 08:32:55,481 | ERROR | db_api | Error executing query: UNIQUE constraint failed
+2025-11-04 08:32:55,481 | ERROR | db_api | Query: INSERT INTO test_table VALUES (1, 'dup')
+2025-11-04 08:32:55,481 | ERROR | db_api | Params: None
+2025-11-04 08:32:55,482 | INFO | db | Database file set to: /tmp/tmpe80xa622.db
+2025-11-04 08:32:55,487 | INFO | db | Database file set to: /tmp/tmpoop4g7ht.db
+2025-11-04 08:32:55,491 | INFO | db | Database file set to: /tmp/tmpp3fbco_6.db
+2025-11-04 08:32:55,495 | INFO | db | Database file set to: /tmp/tmpnb541l66.db
+2025-11-04 08:32:56,126 | INFO | buvette_inventaire_db | Inventory 1 affects 1 articles
+2025-11-04 08:32:56,126 | ERROR | stock_db | Error reverting inventory effects for inventory 1: no such table: inventory_stock_journal
+2025-11-04 08:32:56,126 | WARNING | buvette_inventaire_db | Could not revert stock effects for inventory 1: no such table: inventory_stock_journal
+2025-11-04 08:32:56,127 | INFO | buvette_inventaire_db | Deleting child rows in buvette_inventaire_lignes where inventaire_id = 1
+2025-11-04 08:32:56,127 | INFO | buvette_inventaire_db | Deleted inventaire id=1 and 1 child table deletions
+2025-11-04 08:32:56,127 | ERROR | stock_db | Error recomputing stock for article 1: no such table: buvette_mouvements
+2025-11-04 08:32:56,127 | ERROR | buvette_inventaire_db | Failed to recompute stock for article 1: no such table: buvette_mouvements
