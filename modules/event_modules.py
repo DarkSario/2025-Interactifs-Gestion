@@ -547,11 +547,7 @@ class ModuleTableWindow(tk.Toplevel):
 
     def export_pdf(self):
         try:
-            import sys, os
-            parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-            if parent_dir not in sys.path:
-                sys.path.append(parent_dir)
-            from exports.exports import export_dataframe_to_pdf
+            from exports import export_dataframe_to_pdf  # TODO: automated centralization change — see reports/TODOs.md
         except ImportError as e:
             messagebox.showerror("Export PDF", "Le module d'export PDF n'est pas disponible.")
             return
@@ -584,11 +580,7 @@ class ModuleTableWindow(tk.Toplevel):
 
     def export_excel(self):
         try:
-            import sys, os
-            parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-            if parent_dir not in sys.path:
-                sys.path.append(parent_dir)
-            from exports.exports import export_dataframe_to_excel
+            from exports import export_dataframe_to_excel  # TODO: automated centralization change — see reports/TODOs.md
         except ImportError as e:
             from tkinter import messagebox
             messagebox.showerror("Export Excel", "Le module d'export Excel n'est pas disponible.")

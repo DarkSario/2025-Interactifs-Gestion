@@ -195,3 +195,57 @@ automatic changes where manual review is safer. The goal is reversibility and
 correctness over speed.
 
 All skipped fixes are documented in this file and in TODOs.md for future action.
+
+---
+
+# Exports Centralization - Skipped Files
+
+This section lists files that were intentionally skipped during the automated exports import centralization process.
+
+## Intentionally Skipped Files for Exports Centralization
+
+### Package Definition Files
+
+- `exports/__init__.py` - This IS the exports package itself. It defines the package's public API and should not have its internal imports modified.
+
+### Shim/Compatibility Layer Files
+
+- `modules/exports.py` - This is a compatibility shim layer that re-exports from the exports package. It provides backward compatibility and defines additional UI components (like ExportsWindow) that are not part of the core exports package. Its internal structure should be preserved.
+
+### Imports That Should NOT Be Changed
+
+The following imports from `modules.exports` should remain unchanged because these items are defined in `modules/exports.py` and not in the core `exports` package:
+
+- `ExportsWindow` - UI class for exports management
+- `export_bilan_evenement` - Event-specific export function
+- `export_depenses_global` - Global expenses export
+- `export_subventions_global` - Global subsidies export  
+- `export_tous_bilans_evenements` - Bulk event export
+
+### Test Files
+
+All files in the `tests/` directory were excluded as per project policy. Test files may contain intentional import patterns for testing purposes.
+
+### Migration Scripts
+
+All files matching patterns:
+- `scripts/migration*`
+- `scripts/migrate_*`
+
+These scripts are one-time migration utilities and should not be modified.
+
+## Files Successfully Modified by Automation
+
+The exports centralization automation successfully modified:
+
+1. `modules/cloture_exercice.py` - Import from `exports.exports` centralized to `exports`
+2. `modules/event_modules.py` - Imports from `exports.exports` centralized to `exports` and sys.path hacks removed
+
+## Rationale for Skipping
+
+The automation script is designed to be conservative and only modify application code files where:
+1. The import pattern is unambiguous
+2. The change is safe and will not break functionality
+3. The file is not a special system file (package definitions, shims, tests, migrations)
+
+All other files should be manually reviewed if import centralization is desired.

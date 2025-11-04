@@ -5,7 +5,7 @@ import os
 import pandas as pd
 
 from db.db import get_connection
-from exports.exports import (
+from exports import (  # TODO: automated centralization change — see reports/TODOs.md
     export_bilan_reporte_pdf,
     export_bilan_argumente_pdf,
     export_bilan_argumente_word

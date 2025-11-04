@@ -1,5 +1,5 @@
 # SQL Access Map
-Generated: 2025-11-04T06:40:10.815948
+Generated: 2025-11-04T07:13:45.390854
 This report maps all database access patterns in the codebase.
 
 ## Summary
@@ -243,8 +243,8 @@ This report maps all database access patterns in the codebase.
 - Line 483: `conn = get_connection()`
 - Line 497: `conn = get_connection()`
 - Line 538: `conn = get_connection()`
-- Line 560: `conn = get_connection()`
-- Line 598: `conn = get_connection()`
+- Line 556: `conn = get_connection()`
+- Line 590: `conn = get_connection()`
 
 ### modules/event_payments.py
 - Line 38: `conn = get_connection()`
@@ -550,17 +550,17 @@ This report maps all database access patterns in the codebase.
 - Line 431 `.fetchone()`: `).fetchone()`
 - Line 509 `.fetchone()`: `).fetchone()`
 - Line 518 `.fetchone()`: `).fetchone()`
-- Line 575 `.fetchone()`: `).fetchone()`
-- Line 613 `.fetchone()`: `).fetchone()`
+- Line 571 `.fetchone()`: `).fetchone()`
+- Line 605 `.fetchone()`: `).fetchone()`
 - Line 67 `.fetchall()`: `mods = conn.execute("SELECT * FROM event_modules WHERE event_id = ?", (self.event_id,)).fetchall()`
 - Line 207 `.fetchall()`: `).fetchall()`
 - Line 235 `.fetchall()`: `).fetchall()`
 - Line 361 `.fetchall()`: `choix = [v["valeur"] for v in conn.execute("SELECT valeur FROM valeurs_modeles_colonnes WHERE modele_id=?", (modele_id,)).fetchall()]`
 - Line 541 `.fetchall()`: `).fetchall()`
-- Line 563 `.fetchall()`: `).fetchall()`
-- Line 566 `.fetchall()`: `).fetchall()`
-- Line 601 `.fetchall()`: `).fetchall()`
-- Line 604 `.fetchall()`: `).fetchall()`
+- Line 559 `.fetchall()`: `).fetchall()`
+- Line 562 `.fetchall()`: `).fetchall()`
+- Line 593 `.fetchall()`: `).fetchall()`
+- Line 596 `.fetchall()`: `).fetchall()`
 
 ### modules/event_payments.py
 - Line 124 `.fetchone()`: `p = conn.execute("SELECT * FROM event_payments WHERE id=?", (self.payment_id,)).fetchone()`
