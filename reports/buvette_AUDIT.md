@@ -1,60 +1,40 @@
+# Buvette Module Audit
 
-[95m[1m================================================================================[0m
-[95m[1m                    SCRIPT DE VÉRIFICATION DU MODULE BUVETTE                    [0m
-[95m[1m================================================================================[0m
+Comprehensive audit of the buvette (snack bar) module.
 
-Ce script identifie les incohérences et problèmes dans le module buvette
-avant d'appliquer les corrections.
+Generated: /home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion
 
-Répertoire de travail: /home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion
+## Summary
 
+- Total buvette-related files: 17
 
-[94m[1m--- Vérification de la structure des fichiers ---[0m
-[92m✓ Fichier trouvé: db/db.py[0m
-[92m✓ Fichier trouvé: modules/buvette_db.py[0m
-[92m✓ Fichier trouvé: modules/buvette.py[0m
-[92m✓ Fichier trouvé: modules/buvette_inventaire_db.py[0m
-[92m✓ Fichier trouvé: tests/test_buvette_inventaire.py[0m
+## Files
 
-[94m[1m--- Vérification du schéma de base de données ---[0m
-[92m✓ Colonne 'date_mouvement' trouvée dans le schéma[0m
-[92m✓ Colonne 'type_mouvement' trouvée dans le schéma[0m
-[92m✓ Colonne 'motif' trouvée dans le schéma (pas 'commentaire')[0m
+- `modules/buvette.py` (45899 bytes)
+- `modules/buvette_bilan_db.py` (3525 bytes)
+- `modules/buvette_bilan_dialogs.py` (4091 bytes)
+- `modules/buvette_db.py` (19721 bytes)
+- `modules/buvette_dialogs.py` (15617 bytes)
+- `modules/buvette_inventaire_db.py` (13825 bytes)
+- `modules/buvette_inventaire_dialogs.py` (21532 bytes)
+- `modules/buvette_mouvements_db.py` (4631 bytes)
+- `modules/buvette_mouvements_dialogs.py` (4000 bytes)
+- `scripts/auto_fix_buvette_rows.py` (9016 bytes)
+- `scripts/check_buvette.py` (14546 bytes)
+- `tests/test_buvette_audit.py` (13795 bytes)
+- `tests/test_buvette_inventaire.py` (9057 bytes)
+- `tests/test_buvette_purchase_price.py` (7034 bytes)
+- `tests/test_buvette_repository.py` (10422 bytes)
+- `tests/test_buvette_stock.py` (5928 bytes)
+- `tests/test_stock_buvette_tab.py` (7601 bytes)
 
-[94m[1m--- Vérification de modules/buvette_db.py ---[0m
-[92m✓ list_mouvements contient les alias AS date/AS type[0m
-[92m✓ get_mouvement_by_id contient les alias AS date/AS type[0m
-[92m✓ Aucun problème trouvé dans buvette_db.py[0m
+## Known Issues
 
-[94m[1m--- Vérification de modules/buvette.py ---[0m
-[92m✓ InventaireDialog contient columnconfigure[0m
-[92m✓ refresh_lignes utilise article_name[0m
-[92m✓ refresh_bilan protège les agrégations[0m
-[92m✓ Aucun problème trouvé dans buvette.py[0m
+### Missing Columns
+- `buvette_inventaire_lignes.commentaire` - Added via migration 0001
 
-[94m[1m--- Exécution des tests unitaires ---[0m
-[93m⚠ pytest n'est pas installé. Installation en cours...[0m
-============================= test session starts ==============================
-platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /usr/bin/python
-cachedir: .pytest_cache
-rootdir: /home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion
-configfile: pyproject.toml
-collecting ... collected 7 items
+## Recommendations
 
-tests/test_buvette_inventaire.py::TestBuvetteInventaire::test_insert_inventaire_with_invalid_type_raises_error PASSED [ 14%]
-tests/test_buvette_inventaire.py::TestBuvetteInventaire::test_insert_inventaire_with_valid_type_apres PASSED [ 28%]
-tests/test_buvette_inventaire.py::TestBuvetteInventaire::test_insert_inventaire_with_valid_type_avant PASSED [ 42%]
-tests/test_buvette_inventaire.py::TestBuvetteInventaire::test_insert_inventaire_with_valid_type_hors_evenement PASSED [ 57%]
-tests/test_buvette_inventaire.py::TestBuvetteInventaire::test_list_inventaires PASSED [ 71%]
-tests/test_buvette_inventaire.py::TestBuvetteInventaire::test_update_inventaire_with_invalid_type_raises_error PASSED [ 85%]
-tests/test_buvette_inventaire.py::TestBuvetteInventaire::test_update_inventaire_with_valid_type PASSED [100%]
-
-============================== 7 passed in 0.08s ===============================
-
-[92m✓ Tous les tests sont passés[0m
-
-[95m[1m================================================================================[0m
-[95m[1m                            RÉSUMÉ DES VÉRIFICATIONS                            [0m
-[95m[1m================================================================================[0m
-
-[92m✓ ✓ Aucun problème détecté ! Le module buvette est conforme.[0m
+1. Review all buvette database queries for proper error handling
+2. Ensure row_to_dict() is used for all database row access
+3. Add comprehensive tests for buvette inventory operations

@@ -1,19 +1,29 @@
-============================================================
-SQL Schema Analyzer - Module Column Detection
-============================================================
-Repository root: /home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion
+# Column Removal Candidates
 
-Scanning modules...
-Scanning ui...
-Scanning scripts...
-Scanning lib...
-Scanning db...
+This report lists database columns that *might* be safe to remove.
+⚠️  **CAUTION**: This is for reference only. Never remove columns without thorough testing.
 
-Analysis complete. Found 43 tables.
-Report generated: /home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion/reports/SQL_SCHEMA_HINTS.md
-YAML manifest generated: /home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion/db/schema_hints.yaml
+Generated: /home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion
 
-============================================================
-Report saved to: /home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion/reports/SQL_SCHEMA_HINTS.md
-YAML manifest saved to: /home/runner/work/2025-Interactifs-Gestion/2025-Interactifs-Gestion/db/schema_hints.yaml
-============================================================
+## Methodology
+
+Columns are considered candidates for removal if:
+- They are rarely or never queried in the codebase
+- They contain mostly NULL values
+- They were added for features that are no longer used
+
+## Candidates
+
+*No automatic detection implemented yet.*
+
+Manual review required. Check:
+- Database column usage statistics
+- Feature usage analytics
+- Historical commit messages
+
+## Recommendation
+
+Instead of removing columns:
+1. Mark them as deprecated in documentation
+2. Add a migration to remove them in a future version
+3. Keep them for backward compatibility if unsure
