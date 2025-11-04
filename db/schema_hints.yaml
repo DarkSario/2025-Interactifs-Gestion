@@ -1365,9 +1365,6 @@ tables:
       parent:
         inferred: true
         type: TEXT
-      parent_dir:
-        inferred: true
-        type: TEXT
       prix:
         inferred: true
         type: REAL
