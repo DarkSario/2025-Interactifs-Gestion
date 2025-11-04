@@ -451,3 +451,66 @@ class ExportsWindow(tk.Toplevel):
             messagebox.showwarning("Sélection", "Sélectionnez un événement.")
             return None
         return int(self.event_list[idx][0])
+
+# --- Compatibility wrappers for previous export API ---
+# These functions ensure that callers expecting:
+#   export_dataframe_to_excel, export_dataframe_to_csv, export_dataframe_to_pdf
+# can import them from modules.exports even if the file previously provided different helpers.
+# They use pandas for Excel/CSV and reportlab for PDF (if available).
+import pandas as _pd
+
+def _ensure_df(df):
+    """Return a pandas.DataFrame for the given object when possible."""
+    if hasattr(df, "to_frame") and not hasattr(df, "to_excel"):
+        # some objects like Series -> convert to DataFrame
+        return _pd.DataFrame(df)
+    if not hasattr(df, "to_excel") and not hasattr(df, "to_csv") and not hasattr(df, "to_html"):
+        return _pd.DataFrame(df)
+    return df
+
+if "export_dataframe_to_excel" not in globals():
+    def export_dataframe_to_excel(df, file_path, sheet_name="Sheet1", index=False, **kwargs):
+        df = _ensure_df(df)
+        with _pd.ExcelWriter(file_path) as writer:
+            df.to_excel(writer, sheet_name=sheet_name, index=index, **kwargs)
+
+if "export_dataframe_to_csv" not in globals():
+    def export_dataframe_to_csv(df, file_path, index=False, **kwargs):
+        df = _ensure_df(df)
+        df.to_csv(file_path, index=index, **kwargs)
+
+if "export_dataframe_to_pdf" not in globals():
+    def export_dataframe_to_pdf(df, file_path, title=None, **kwargs):
+        df = _ensure_df(df)
+        try:
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+            from reportlab.lib.pagesizes import A4
+            from reportlab.lib import colors
+            from reportlab.lib.styles import getSampleStyleSheet
+        except Exception as e:
+            raise ImportError("reportlab is required for PDF export. Install it or use CSV/Excel.") from e
+
+        data = [list(df.columns)]
+        for row in df.values:
+            data.append([("" if v is None else str(v)) for v in row])
+
+        doc = SimpleDocTemplate(file_path, pagesize=A4, rightMargin=18, leftMargin=18, topMargin=18, bottomMargin=18)
+        styles = getSampleStyleSheet()
+        elements = []
+        if title:
+            elements.append(Paragraph(str(title), styles["Title"]))
+            elements.append(Spacer(1, 8))
+
+        table = Table(data, hAlign="LEFT")
+        table.setStyle(TableStyle([
+            ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
+            ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#e0e0e0")),
+            ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
+            ("FONTSIZE", (0,0), (-1,-1), 8),
+            ("VALIGN", (0,0), (-1,-1), "TOP"),
+            ("LEFTPADDING", (0,0), (-1,-1), 4),
+            ("RIGHTPADDING", (0,0), (-1,-1), 4),
+        ]))
+        elements.append(table)
+        doc.build(elements)
+# --- end compatibility wrappers ---
