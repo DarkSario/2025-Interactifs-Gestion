@@ -1,5 +1,5 @@
 # Database Access TODOs
-Generated: 2025-11-04T05:42:58.336708
+Generated: 2025-11-04T06:40:10.816819
 
 This report lists action items for fixing database access issues.
 
@@ -299,47 +299,47 @@ Solution: Use `_row_to_dict(row)` or `_rows_to_dicts(rows)` from modules/db_row_
   return row_dict.get("recette", 0.0) if row_dict else 0.0
   ```
 
-- [ ] modules/buvette.py:434
+- [ ] modules/buvette.py:436
   ```python
   unite_display = item.get("unite_type", item.get("unite", ""))
   ```
 
-- [ ] modules/buvette.py:434
+- [ ] modules/buvette.py:436
   ```python
   unite_display = item.get("unite_type", item.get("unite", ""))
   ```
 
-- [ ] modules/buvette.py:435
+- [ ] modules/buvette.py:437
   ```python
   quantite_display = item.get("quantite", "")
   ```
 
-- [ ] modules/buvette.py:439
+- [ ] modules/buvette.py:441
   ```python
   iid=item.get("id", 0),
   ```
 
-- [ ] modules/buvette.py:441
+- [ ] modules/buvette.py:443
   ```python
   item.get("name", ""),
   ```
 
-- [ ] modules/buvette.py:442
+- [ ] modules/buvette.py:444
   ```python
   item.get("categorie", ""),
   ```
 
-- [ ] modules/buvette.py:443
+- [ ] modules/buvette.py:445
   ```python
   item.get("stock", 0),
   ```
 
-- [ ] modules/buvette.py:446
+- [ ] modules/buvette.py:448
   ```python
   item.get("contenance", ""),
   ```
 
-- [ ] modules/buvette.py:447
+- [ ] modules/buvette.py:449
   ```python
   item.get("commentaire", "")
   ```
@@ -678,6 +678,7 @@ Review to ensure they don't need dict conversion.
 - [ ] dialogs/edit_module_data_dialog.py
 - [ ] dialogs/edit_module_dialog.py
 - [ ] dialogs/edit_stock_dialog.py
+- [ ] exports/exports.py
 - [ ] lib/db_articles.py
 - [ ] main.py
 - [ ] modules/buvette_bilan_dialogs.py
