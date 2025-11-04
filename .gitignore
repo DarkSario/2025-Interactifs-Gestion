@@ -28,3 +28,10 @@ Thumbs.db
 # Environment files
 .env
 .env.local
+
+# Database backups (exclude from repository)
+*.db.bak.*
+db/*.bak.*
+
+# Logs
+logs/*.log
